@@ -20,7 +20,7 @@ using StringTools;
 
 /** 
  * @Authors StarNova (Cream.BR), MadBear (FNF BR)
- * @version: 0.1.4
+ * @version: 0.1.5
 **/
 class StorageSystem
 {
@@ -84,7 +84,7 @@ class StorageSystem
 				#if android
 				Tools.showAlertDialog("Requirements", "Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.",
 					{name: "OK", func: null}, null);
-				#elseif ios
+				#else
 				Application.current.window.alert("Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.", "Requirements");
 				#end
 				lime.system.System.exit(1);
@@ -94,7 +94,7 @@ class StorageSystem
 			    #if android
 				Tools.showAlertDialog("Requirements", "Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.",
 					{name: "OK", func: null}, null);
-				#elseif ios
+				#else
 				Application.current.window.alert("Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.", "Requirements");
 				#end
 				lime.system.System.exit(1);
@@ -105,7 +105,7 @@ class StorageSystem
 		    #if android
 			Tools.showAlertDialog("Requires permissions", "Please allow the necessary permissions to play.\nPress OK & let's see what happens",
 				{name: "OK", func: null}, null);
-			#elseif ios
+			#else
 				Application.current.window.alert("Please allow the necessary permissions to play.\nPress OK & let's see what happens", "Requires permissions");
 			#end
 		}
@@ -134,7 +134,7 @@ class StorageSystem
 
 			#if android
 			Tools.showAlertDialog("Sucess!", "File saved in:\n" + saveFolder + "/" + name + ext, {name: "OK", func: null}, null);
-			#elseif ios
+			#else
 			Application.current.window.alert("File saved in:\n" + saveFolder + "/" + name + ext, "Sucess!");
 			#end
 		}
@@ -145,7 +145,7 @@ class StorageSystem
 
 			#if android
 			Tools.showAlertDialog("Error saving file", errorMsg, {name: "Close", func: null}, null);
-			#elseif ios
+			#else
 			Application.current.window.alert(errorMsg, "Error saving file");
 			#end
 		}
