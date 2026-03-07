@@ -23,6 +23,7 @@ import js.html.*;
 
 #if mobile
 import mobile.backend.StorageSystem;
+import mobile.backend.AssetsUtil;
 #end
 
 import backend.Paths;
