@@ -19,7 +19,7 @@ import openfl.utils.ByteArray;
 using StringTools;
 
 /** 
- * @Authors StarNova (Cream.BR), MadBear (FNF BR)
+ * @Authors StarNova (Cream.BR), LumiCoder (FNF BR)
  * @version: 0.1.4
 **/
 class StorageSystem

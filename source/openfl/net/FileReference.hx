@@ -13,7 +13,7 @@ import openfl.utils.ByteArray;
 #if lime
 import lime.utils.Bytes;
 #end
-#if (lime && !macro)
+#if desktop
 import lime.ui.FileDialog;
 #end
 #if sys
@@ -24,6 +24,9 @@ import sys.FileSystem;
 import js.html.FileReader;
 import js.html.InputElement;
 import js.Browser;
+#end
+#if android
+import lime.system.JNI;
 #end
 
 using StringTools;
@@ -479,7 +482,9 @@ class FileReference extends EventDispatcher
 
 	@:noCompletion private var __data:ByteArray;
 	@:noCompletion private var __dataAsDynamic:Dynamic;
+
 	@:noCompletion public var __path:String;
+
 	@:noCompletion private var __urlLoader:URLLoader;
 	#if (js && html5)
 	@:noCompletion private var __inputControl:InputElement;
@@ -589,7 +594,7 @@ class FileReference extends EventDispatcher
 			filter = filters.join(";");
 		}
 
-		#if (lime && !macro)
+		#if desktop
 		var openFileDialog = new FileDialog();
 		openFileDialog.onCancel.add(openFileDialog_onCancel);
 		openFileDialog.onSelect.add(openFileDialog_onSelect);
@@ -852,7 +857,7 @@ class FileReference extends EventDispatcher
 		__urlLoader.addEventListener(ProgressEvent.PROGRESS, urlLoader_onProgress);
 		__urlLoader.load(request);
 
-		#if (lime && !macro)
+		#if desktop
 		var saveFileDialog = new FileDialog();
 		saveFileDialog.onCancel.add(saveFileDialog_onCancel);
 		saveFileDialog.onSelect.add(saveFileDialog_onSelect);
@@ -1066,43 +1071,61 @@ class FileReference extends EventDispatcher
 		__path = null;
 		__dataAsDynamic = null;
 
-		if (data == null) return;
+		if (data == null)
+			return;
 
-		__dataAsDynamic = data; //use this there
+		__dataAsDynamic = data;
 
-		#if (desktop || android)
-		if ((data is ByteArrayData))
+		if ((data is openfl.utils.ByteArrayData))
 		{
 			__data = data;
 		}
 		else
 		{
-			__data = new ByteArray();
+			__data = new openfl.utils.ByteArray();
 			__data.writeUTFBytes(Std.string(data));
 		}
 
+		#if android
+		try
+		{
+			var content:String = "";
+
+			if (__data != null)
+			{
+				__data.position = 0;
+				content = __data.toString();
+			}
+
+			if (content != null && content.length > 0)
+			{
+				var jniCall = JNI.createStaticMethod("openfl/net/FileUtils", "saveFile", "(Ljava/lang/String;Ljava/lang/String;)V");
+				jniCall(defaultFileName != null ? defaultFileName : "file.json", content);
+
+				dispatchEvent(new Event(Event.SELECT));
+			}
+			else
+			{
+				trace("[FileReference] ERRO: Tentativa de salvar conteúdo vazio!");
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace("[FileReference] Erro na chamada JNI: " + e);
+		}
+		#elseif desktop
 		#if (lime && !macro)
-		var saveFileDialog = new FileDialog();
+		var saveFileDialog = new lime.ui.FileDialog();
 		saveFileDialog.onCancel.add(saveFileDialog_onCancel);
 		saveFileDialog.onSelect.add(saveFileDialog_onSelect);
-		saveFileDialog.browse(SAVE, defaultFileName != null ? Path.extension(defaultFileName) : null, defaultFileName);
+		saveFileDialog.browse(SAVE, defaultFileName != null ? haxe.io.Path.extension(defaultFileName) : null, defaultFileName);
 		#end
 		#elseif (js && html5)
-		if ((data is ByteArrayData))
-		{
-			__data = data;
-		}
-		else
-		{
-			__data = new ByteArray();
-			__data.writeUTFBytes(Std.string(data));
-		}
-
 		#if (lime && !macro)
-		var saveFileDialog = new FileDialog();
+		var saveFileDialog = new lime.ui.FileDialog();
 		saveFileDialog.onCancel.add(saveFileDialog_onCancel);
 		saveFileDialog.onSave.add(saveFileDialog_onSave);
-		saveFileDialog.save(__data, defaultFileName != null ? Path.extension(defaultFileName) : null, defaultFileName);
+		saveFileDialog.save(__data, defaultFileName != null ? haxe.io.Path.extension(defaultFileName) : null, defaultFileName);
 		#end
 		#end
 	}
@@ -1484,24 +1507,25 @@ class FileReference extends EventDispatcher
 	/**
 	 * Basically Fixes the Save System For Android Devices
 	 * Not tested on other android devices right now, so there's can be a problem
-	*/
+	 */
 	#if android
 	@:noCompletion public function getFixedAndroidPath(path:String):String
 	{
-		//bunch of `if` conduction here because Idk how can I do this better ;)
-		if (path.startsWith('/document/raw:')) //Global Path Fix
+		// bunch of `if` conduction here because Idk how can I do this better ;)
+		if (path.startsWith('/document/raw:')) // Global Path Fix
 			path = path.replace('/document/raw:', '');
-		if (path.startsWith('/document/primary:')) //Download, Images, etc... Fix (I know there's 1 too, but many of the peoples only has 0, so fuck it)
+		if (path.startsWith('/document/primary:')) // Download, Images, etc... Fix (I know there's 1 too, but many of the peoples only has 0, so fuck it)
 			path = path.replace('/document/primary:', '/storage/emulated/0/');
-		if (path.startsWith('/document//')) //Data Fix
+		if (path.startsWith('/document//')) // Data Fix
 			path = path.replace('/document/', '/');
-		if (path.startsWith('/document/')) //SD Card Fix Part 1
+		if (path.startsWith('/document/')) // SD Card Fix Part 1
 			path = path.replace('/document/', '/storage/');
 
-		//SD Card Fix Part 2 (Get the first `:` symbol and change it with `/`)
+		// SD Card Fix Part 2 (Get the first `:` symbol and change it with `/`)
 		var original:String = path;
 		var colonIndex:Int = original.indexOf(":");
-		if (colonIndex != -1) {
+		if (colonIndex != -1)
+		{
 			path = original.substring(0, colonIndex) + "/" + original.substring(colonIndex + 1);
 			trace(path); // Output Should be like this: `/storage/BB77-1C14/week1.json` (Accessable Path)
 		}
