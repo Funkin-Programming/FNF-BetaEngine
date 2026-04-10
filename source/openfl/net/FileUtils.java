@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 
 /** * @Authors LumiCoder, (FNF BR) and StarNova, (Cream.BR)
- * @version: 0.1.5 (Under test)
+ * @version: 0.1.5
 **/
 public class FileUtils extends Extension {
 
