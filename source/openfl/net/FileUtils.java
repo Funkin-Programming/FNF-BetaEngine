@@ -5,14 +5,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ParcelFileDescriptor;
 import org.haxe.extension.Extension;
-import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 
-/** * @Authors LumiCoder, (FNF BR)
- * @version: 0.1.4 
+/** * @Authors LumiCoder, (FNF BR) and StarNova, (Cream.BR)
+ * @version: 0.1.5 (Under test)
 **/
 public class FileUtils extends Extension {
 
@@ -45,6 +44,7 @@ public class FileUtils extends Extension {
             }
         });
     }
+
     public static void browseFiles(final String mimeType, final org.haxe.lime.HaxeObject callback) {
         callbackObject = callback;
         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -78,6 +78,7 @@ public class FileUtils extends Extension {
             }
             return true;
         }
+        
         if (requestCode == PICK_FILE_CODE) {
             if (resultCode == Activity.RESULT_OK && data != null) {
                 Uri uri = data.getData();
@@ -90,47 +91,55 @@ public class FileUtils extends Extension {
         
         return false;
     }
-    private static void writeFileToUri(Uri uri) {
-        try {
-            ParcelFileDescriptor pfd = Extension.mainActivity.getContentResolver().openFileDescriptor(uri, "wt");
-            
-            if (pfd != null) {
-                FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
-                
-                byte[] bytesToWrite = contentToSave.getBytes("UTF-8");
-                
-                fileOutputStream.write(bytesToWrite);
-                fileOutputStream.flush();
-                fileOutputStream.getFD().sync();
-                fileOutputStream.close();
-                pfd.close();
-                
-                contentToSave = ""; 
+
+    private static void writeFileToUri(final Uri uri) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OutputStream fileOutputStream = Extension.mainActivity.getContentResolver().openOutputStream(uri);
+                    
+                    if (fileOutputStream != null) {
+                        byte[] bytesToWrite = contentToSave.getBytes("UTF-8");
+                        
+                        fileOutputStream.write(bytesToWrite);
+                        fileOutputStream.flush();
+                        fileOutputStream.close();
+                        
+                        contentToSave = ""; 
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
-    private static void readBytesFromUri(Uri uri) {
-        try {
-            InputStream inputStream = Extension.mainActivity.getContentResolver().openInputStream(uri);
-            ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-            
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteBuffer.write(buffer, 0, len);
+
+    private static void readBytesFromUri(final Uri uri) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InputStream inputStream = Extension.mainActivity.getContentResolver().openInputStream(uri);
+                    ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+                    
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = inputStream.read(buffer)) != -1) {
+                        byteBuffer.write(buffer, 0, len);
+                    }
+
+                    byte[] fileBytes = byteBuffer.toByteArray();
+                    String fileName = "file.json";
+
+                    callbackObject.call("onFileSelected", new Object[] { fileBytes, fileName });
+
+                    inputStream.close();
+                    byteBuffer.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-
-            byte[] fileBytes = byteBuffer.toByteArray();
-            String fileName = "file.json";
-
-            callbackObject.call("onFileSelected", new Object[] { fileBytes, fileName });
-
-            inputStream.close();
-            byteBuffer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
 }
