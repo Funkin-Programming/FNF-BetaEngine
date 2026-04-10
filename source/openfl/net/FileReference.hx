@@ -608,7 +608,11 @@ class FileReference extends EventDispatcher
 		#elseif android
 		try
 		{
-			trace("FileReference.browse(): Android not implemented yet");
+			var mimeType = "application/json";
+			var jniCall = JNI.createStaticMethod("openfl/net/FileUtils", "browseFiles", "(Ljava/lang/String;Lorg/haxe/lime/HaxeObject;)V");
+
+			jniCall(mimeType, this);
+
 			return true;
 		}
 		catch (e:Dynamic)
@@ -647,7 +651,7 @@ class FileReference extends EventDispatcher
 			type = "." + Path.extension(file.name);
 			name = Path.withoutDirectory(file.name);
 			__path = file.name;
-			dispatchEvent(new openfl.events.Event(openfl.events.Event.SELECT));
+			dispatchEvent(new Event(Event.SELECT));
 		}
 		__inputControl.click();
 		return true;
@@ -655,6 +659,18 @@ class FileReference extends EventDispatcher
 		return false;
 		#end
 	}
+
+	#if android
+	@:keep
+	public function onFileSelected(data:haxe.io.BytesData, fileName:String):Void
+	{
+		this.name = fileName;
+		this.data = haxe.io.Bytes.ofData(data);
+		this.size = this.data.length;
+
+		dispatchEvent(new Event(Event.SELECT));
+	}
+	#end
 
 	/**
 		Cancels any ongoing upload or download operation on this FileReference
@@ -1097,7 +1113,7 @@ class FileReference extends EventDispatcher
 			__data.writeUTFBytes(Std.string(data));
 		}
 
-		#if android 
+		#if android
 		try
 		{
 			var content:String = "";
