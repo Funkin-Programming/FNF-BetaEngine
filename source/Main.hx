@@ -183,11 +183,6 @@ class Main extends Sprite
 
 		errMsg += "\nUncaught Error: " + e.error + "\nPlease report this error to the GitHub page: https://github.com/DeveloperPorting/Psych-Engine-0.7.3-Mobile\n\n> Crash Handler written by: sqirra-rng";
 
-		/*if (!FileSystem.exists("crash/"))
-			FileSystem.createDirectory("crash/");
-
-		File.saveContent(path, errMsg + "\n");*/
-
 		StorageSystem.saveContent(path, errMsg + "\n");
 
 		Sys.println(errMsg);
