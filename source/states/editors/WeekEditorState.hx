@@ -725,7 +725,6 @@ class WeekEditorFreeplayState extends MusicBeatState
 		blackBlack.alpha = 0.6;
 		add(blackBlack);
 
-		#if desktop
 		var loadWeekButton:FlxButton = new FlxButton(0, 685, "Load Week", function()
 		{
 			WeekEditorState.loadWeek();
@@ -733,7 +732,6 @@ class WeekEditorFreeplayState extends MusicBeatState
 		loadWeekButton.screenCenter(X);
 		loadWeekButton.x -= 120;
 		add(loadWeekButton);
-		#end
 
 		var storyModeButton:FlxButton = new FlxButton(0, 685, "Story Mode", function()
 		{
