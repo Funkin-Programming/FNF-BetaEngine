@@ -56,7 +56,7 @@ jobs:
           haxelib run lime config ANDROID_SETUP true
 
       - name: Compile
-        run: haxelib run lime build android -release -Dnext -D HXCPP_COMPILE_CACHE=${{ env.HXCPP_COMPILE_CACHE }}
+        run: haxelib run lime build android -release -Dnext
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -101,7 +101,7 @@ jobs:
          haxelib run lime rebuild hxcpp
 
       - name: Compile
-        run: haxelib run lime build ios -nosign -D HXCPP_COMPILE_CACHE=${{ env.HXCPP_COMPILE_CACHE }}
+        run: haxelib run lime build ios -nosign
 
       - name: Making ipa file
         run: |
@@ -154,7 +154,7 @@ jobs:
           haxelib run lime rebuild hxcpp --quiet
 
       - name: Compile
-        run: haxelib run lime build windows -release -D HXCPP_COMPILE_CACHE=${{ env.HXCPP_COMPILE_CACHE }}
+        run: haxelib run lime build windows -release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -202,7 +202,7 @@ jobs:
           haxelib run lime rebuild hxcpp --quiet
 
       - name: Compile
-        run: haxelib run lime build linux -release -D HXCPP_COMPILE_CACHE=${{ env.HXCPP_COMPILE_CACHE }}
+        run: haxelib run lime build linux -release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -233,7 +233,7 @@ jobs:
           path: |
             .haxelib/
             ${{ env.HXCPP_COMPILE_CACHE }}
-            export/release/mac/obj/
+            export/release/macos/obj/
           restore-keys: |
             cache-mac-psych-
 
@@ -245,11 +245,11 @@ jobs:
           haxelib run lime rebuild hxcpp --quiet
 
       - name: Compile
-        run: haxelib run lime build mac -release -D HXCPP_COMPILE_CACHE=${{ env.HXCPP_COMPILE_CACHE }}
+        run: haxelib run lime build mac -release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PsychEngine-MacOS
-          path: export/release/mac/bin/
+          path: export/release/macos/bin/
           if-no-files-found: error
