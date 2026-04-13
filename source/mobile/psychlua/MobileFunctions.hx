@@ -16,9 +16,9 @@ class MobileFunctions
 			return Haptic.vibrate(period, duration);
 		});
 
-		Lua_helper.add_callback(lua, "touchUtilJustPressed", mobile.backend.TouchUtil.justPressed);
-		Lua_helper.add_callback(lua, "touchUtilPressed", mobile.backend.TouchUtil.pressed);
-		Lua_helper.add_callback(lua, "touchUtilJustReleased", mobile.backend.TouchUtil.justReleased);
+		Lua_helper.add_callback(lua, "touchUtilJustPressed", TouchUtil.justPressed);
+		Lua_helper.add_callback(lua, "touchUtilPressed", TouchUtil.pressed);
+		Lua_helper.add_callback(lua, "touchUtilJustReleased", TouchUtil.justReleased);
 		#end
 		#end
 	}
