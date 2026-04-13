@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@v3
+        uses: krdlab/setup-haxe@v2.0.2
         with:
           haxe-version: 4.3.2
 
