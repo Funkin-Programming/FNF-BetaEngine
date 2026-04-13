@@ -63,10 +63,8 @@
     },
     {
       "name": "hxdiscord_rpc",
-      "type": "git",
-      "dir": null,
-      "ref": "fb394425a57ae5a9e3726d5ddb93228b109115fe",
-      "url": "https://github.com/MAJigsaw77/hxdiscord_rpc"
+      "type": "haxelib",
+      "version": "1.3.0"
     },
     {
       "name": "flxanimate",
