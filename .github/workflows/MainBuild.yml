@@ -3,9 +3,6 @@ name: Main Build
 on: 
   workflow_dispatch:
 
-env:
-  HXCPP_COMPILE_CACHE: ${{ github.workspace }}/.hxcpp_cache
-
 jobs:
   # -----------------------------------------------------------------
   # 1. ANDROID BUILD
@@ -28,17 +25,6 @@ jobs:
         with:
           haxe-version: 4.3.2
 
-      - name: Restore Cache
-        uses: actions/cache@v4
-        with:
-          key: cache-android-psych-${{ github.sha }}
-          path: |
-            ${{ env.HXCPP_COMPILE_CACHE }}
-            export/release/android/haxe/
-            export/release/android/obj/
-          restore-keys: |
-            cache-android-psych-
-
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
@@ -53,10 +39,6 @@ jobs:
           haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_LATEST_HOME
           haxelib run lime config JAVA_HOME $JAVA_HOME
           haxelib run lime config ANDROID_SETUP true
-
-      - name: Create Compile Cache Directory
-        shell: bash
-        run: mkdir -p ${{ env.HXCPP_COMPILE_CACHE }}
 
       - name: Compile
         run: haxelib run lime build android -release -Dnext
@@ -82,16 +64,6 @@ jobs:
         uses: krdlab/setup-haxe@v2.0.2
         with:
           haxe-version: 4.3.2
-
-      - name: Restore Cache
-        uses: actions/cache@v4
-        with:
-          key: cache-ios-psych-${{ github.sha }}
-          path: |
-            ${{ env.HXCPP_COMPILE_CACHE }}
-            export/release/ios/build/Release-iphoneos/
-          restore-keys: |
-            cache-ios-psych-
           
       - name: Install Libraries
         run: |
@@ -101,10 +73,6 @@ jobs:
          haxelib remove lime
          haxelib git lime https://github.com/FunkinCrew/lime 2fdc4b4f8460e9e36bd5ced9098af135072acb05 --quiet
          haxelib run lime rebuild hxcpp
-
-      - name: Create Compile Cache Directory
-        shell: bash
-        run: mkdir -p ${{ env.HXCPP_COMPILE_CACHE }}
 
       - name: Compile
         run: haxelib run lime build ios -nosign
@@ -141,26 +109,12 @@ jobs:
         with:
           haxe-version: 4.3.2
 
-      - name: Restore Cache
-        uses: actions/cache@v4
-        with:
-          key: cache-windows-psych-${{ github.sha }}
-          path: |
-            ${{ env.HXCPP_COMPILE_CACHE }}
-            export/release/windows/obj/
-          restore-keys: |
-            cache-windows-psych-
-
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
-
-      - name: Create Compile Cache Directory
-        shell: bash
-        run: mkdir -p ${{ env.HXCPP_COMPILE_CACHE }}
 
       - name: Compile
         run: haxelib run lime build windows -release
@@ -192,26 +146,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libvlc-dev libvlccore-dev libasound2-dev libx11-dev libxext-dev libxi-dev libxrandr-dev libxinerama-dev
 
-      - name: Restore Cache
-        uses: actions/cache@v4
-        with:
-          key: cache-linux-psych-${{ github.sha }}
-          path: |
-            ${{ env.HXCPP_COMPILE_CACHE }}
-            export/release/linux/obj/
-          restore-keys: |
-            cache-linux-psych-
-
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
-
-      - name: Create Compile Cache Directory
-        shell: bash
-        run: mkdir -p ${{ env.HXCPP_COMPILE_CACHE }}
 
       - name: Compile
         run: haxelib run lime build linux -release
@@ -238,26 +178,12 @@ jobs:
         with:
           haxe-version: 4.3.2
 
-      - name: Restore Cache
-        uses: actions/cache@v4
-        with:
-          key: cache-mac-psych-${{ github.sha }}
-          path: |
-            ${{ env.HXCPP_COMPILE_CACHE }}
-            export/release/macos/obj/
-          restore-keys: |
-            cache-mac-psych-
-
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
-
-      - name: Create Compile Cache Directory
-        shell: bash
-        run: mkdir -p ${{ env.HXCPP_COMPILE_CACHE }}
 
       - name: Compile
         run: haxelib run lime build mac -release
@@ -267,4 +193,4 @@ jobs:
         with:
           name: PsychEngine-MacOS
           path: export/release/macos/bin/
-          if-no-files-found: error
+          if-no-files-found: error          
