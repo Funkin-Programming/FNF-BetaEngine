@@ -19,6 +19,10 @@ class MobileFunctions
 		Lua_helper.add_callback(lua, "touchUtilJustPressed", TouchUtil.justPressed);
 		Lua_helper.add_callback(lua, "touchUtilPressed", TouchUtil.pressed);
 		Lua_helper.add_callback(lua, "touchUtilJustReleased", TouchUtil.justReleased);
+		Lua_helper.add_callback(lua, "setHitboxVisible", function(visible:Bool = false):Void
+		{
+			PlayState.instance.hitbox.visible = visible;
+		});
 		#end
 		#end
 	}
