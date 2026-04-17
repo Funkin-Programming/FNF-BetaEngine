@@ -21,7 +21,7 @@ same goes for *Lua Scripts*, comment out or delete the line with `LUA_ALLOWED`, 
 
 ## Credits Mobile:
 * StarNova (Cream.BR) - Programmer
-* MadBear (FNF BR) - Programmer
+* LumiCoder (FNF BR) - Programmer
 
 ### Special Thanks
 * bbpanzu - Ex-Programmer
