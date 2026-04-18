@@ -84,13 +84,8 @@ class OptionsState extends MusicBeatState
 		#if mobile
         controls.isInSubstate = false;
         
-		if (virtualPad != null) {
-			virtualPad.active = false; 
-			
-			new FlxTimer().start(0.3, function(tmr:FlxTimer) {
-				virtualPad.active = true;
-			});
-		}
+        removeVirtualPad();
+		addVirtualPad(UP_DOWN, A_B);
 		#end
 	}
 
