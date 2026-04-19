@@ -11,7 +11,7 @@ class MobileFunctions
 		var lua:State = funk.lua;
 
 		#if mobile
-		Lua_helper.add_callback(lua, "vibrate", function(duration:Float, ?period:Int = 0)
+		Lua_helper.add_callback(lua, "vibrate", function(duration:Int, ?period:Int = 0)
 		{
 			if (duration <= 0)
 			{
