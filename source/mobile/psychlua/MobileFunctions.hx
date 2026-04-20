@@ -28,6 +28,10 @@ class MobileFunctions
 		{
 			PlayState.instance.hitbox.visible = visible;
 		});
+		Lua_helper.add_callback(lua, "enableKeyboard", function()
+		{
+			FlxG.stage.window.textInputEnabled = true;
+		});
 		#end
 		#end
 	}
