@@ -64,6 +64,8 @@ jobs:
          haxelib install hmm --quiet
          haxelib run hmm setup --quiet
          haxelib run hmm install --quiet
+         haxelib remove lime
+         haxelib git lime https://github.com/FunkinCrew/lime 2fdc4b4f8460e9e36bd5ced9098af135072acb05 --quiet
          haxelib run lime rebuild hxcpp
 
       - name: Compile
