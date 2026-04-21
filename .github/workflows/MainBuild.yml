@@ -110,6 +110,7 @@ jobs:
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
+          haxelib run lime rebuild windows --quiet
 
       - name: Compile
         run: haxelib run lime build windows -release
