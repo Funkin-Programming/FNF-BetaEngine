@@ -23,7 +23,7 @@ using StringTools;
  * @version: 0.1.5 (Indev)
 **/
 class StorageSystem
-{
+{ 
 	private static var folderName(get, never):String;
 
 	private static function get_folderName():String
