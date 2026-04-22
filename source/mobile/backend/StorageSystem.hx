@@ -177,7 +177,6 @@ class StorageSystem
 
         for (assetPath in assetList) {
             if (StringTools.startsWith(assetPath, sourceDir)) {
-                
                 var relativePath = assetPath.substring(sourceDir.length);
                 if (relativePath == "") continue;
                 
@@ -192,15 +191,25 @@ class StorageSystem
                     var shouldCopy = true;
                     
                     if (sys.FileSystem.exists(fullTargetPath) && !forceOverwrite) {
-                        shouldCopy = false; // It only skips if forceOverwrite is false
+                        shouldCopy = false;
                     }
                     
                     if (shouldCopy) {
-                        var fileBytes:haxe.io.Bytes = openfl.utils.Assets.getBytes(assetPath);
+                        var fileBytes:haxe.io.Bytes = null;
+                        
+                        try {
+                            fileBytes = lime.utils.Assets.getBytes(assetPath);
+                        } catch(e:Dynamic) {}
+                        
+                        if (fileBytes == null) {
+                            try {
+                                fileBytes = openfl.utils.Assets.getBytes(assetPath);
+                            } catch(e:Dynamic) {}
+                        }
                         
                         if (fileBytes != null) {
                             sys.io.File.saveBytes(fullTargetPath, fileBytes);
-                            trace('Copiado: $assetPath -> $fullTargetPath');
+                            trace('Copiado (Binário/Áudio): $assetPath -> $fullTargetPath');
                             copiedCount++;
                         } else {
                             var textData = openfl.utils.Assets.getText(assetPath);
@@ -209,7 +218,7 @@ class StorageSystem
                                 trace('Copiado (Texto): $assetPath -> $fullTargetPath');
                                 copiedCount++;
                             } else {
-                                trace('Aviso: Não foi possível ler o arquivo $assetPath');
+                                trace('Aviso: Impossível extrair $assetPath. Pode estar protegido ou mal configurado no project.xml.');
                             }
                         }
                     }
@@ -219,7 +228,7 @@ class StorageSystem
         trace('Cópia concluída com sucesso! $copiedCount arquivos transferidos para: $targetDir');
     } catch (e:Dynamic) {
         trace('Erro crítico ao copiar arquivos: $e');
-        lime.app.Application.current.window.alert('Erro de Sistema', 'Falha ao copiar os arquivos do jogo. Verifique as permissões de armazenamento do Android.');
+        lime.app.Application.current.window.alert('Erro de Sistema', 'Falha ao copiar os arquivos do jogo. Verifique as permissões de armazenamento.');
     }
     #end
   }
