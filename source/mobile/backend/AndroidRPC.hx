@@ -11,7 +11,7 @@ class AndroidRPC {
 
 	public static function initialize() {
 		if (_init == null)
-			_init = JNI.createStaticMethod("arkoselabs/utils/KizzyHelper", "initialize", "()V");
+			_init = JNI.createStaticMethod("mobile/backend/java/KizzyHelper", "initialize", "()V");
 		
 		try { 
 			_init(); 
@@ -23,7 +23,7 @@ class AndroidRPC {
 	public static function update(title:String, artist:String, ?imagePath:String) {
 		//if (imagePath == null) imagePath = "assets/images/discord_icon.png";
 		if (_update == null) {
-			_update = JNI.createStaticMethod("arkoselabs/utils/KizzyHelper", "updateStatus", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+			_update = JNI.createStaticMethod("mobile/backend/java/KizzyHelper", "updateStatus", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 		}
 
 		try { 
@@ -35,7 +35,7 @@ class AndroidRPC {
 
 	public static function shutdown() {
 		if (_shutdown == null)
-			_shutdown = JNI.createStaticMethod("arkoselabs/utils/KizzyHelper", "shutdown", "()V");
+			_shutdown = JNI.createStaticMethod("mobile/backend/java/KizzyHelper", "shutdown", "()V");
 
 		try { _shutdown(); } catch(e:Dynamic) { trace("JNI Shutdown Error: " + e); }
 	}

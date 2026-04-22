@@ -58,9 +58,14 @@ class Main extends Sprite
 		super();
 
 		#if mobile
-		StorageSystem.getPermissions();
-		Sys.setCwd(StorageSystem.getStorageDirectory());
-		#end
+        StorageSystem.getPermissions();
+        var folderCheck = StorageSystem.getDirectory() + "assets";
+        if (!FileSystem.exists(folderCheck)) {
+            StorageSystem.downloadZipRecursive();
+            return; 
+        }
+        Sys.setCwd(StorageSystem.getStorageDirectory());
+        #end
 
 		if (stage != null)
 		{

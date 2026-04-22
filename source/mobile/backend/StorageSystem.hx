@@ -3,6 +3,9 @@ package mobile.backend;
 import openfl.utils.Assets;
 import sys.FileSystem;
 import sys.io.File;
+import haxe.Http;
+import lime.system.JNI;
+import haxe.zip.Reader;
 #if android
 import extension.androidtools.os.Environment;
 import extension.androidtools.Settings;
@@ -49,70 +52,36 @@ class StorageSystem
 	 * Request permission to access the files
 	 */
 	public static function getPermissions():Void
-	{
-	 #if mobile
-	    #if android
-		if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
-		{
-			Permissions.requestPermissions([
-				'READ_MEDIA_IMAGES',
-				'READ_MEDIA_VIDEO',
-				'READ_MEDIA_AUDIO',
-				'READ_MEDIA_VISUAL_USER_SELECTED'
-			]);
-		}
-		else
-		{
-			Permissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
-		}
+    {
+        #if mobile
+        #if android
+        if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
+            Permissions.requestPermissions(['READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO', 'READ_MEDIA_AUDIO', 'READ_MEDIA_VISUAL_USER_SELECTED']);
+        } else {
+            Permissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
+        }
 
-		// Android 11+
-		if (VERSION.SDK_INT >= VERSION_CODES.R)
-		{ // SDK 30 = Android 11
-			if (!Environment.isExternalStorageManager())
-			{
-				Settings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
-			}
-		}
-		#end
+        if (VERSION.SDK_INT >= VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) Settings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
+        }
+        #end
 
-		try
-		{
-			if (!FileSystem.exists(getDirectory()))
-			{
-				FileSystem.createDirectory(getDirectory());
-				#if android
-				Tools.showAlertDialog("Requirements", "Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.",
-					{name: "OK", func: null}, null);
-				#elseif ios
-				Application.current.window.alert("Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.", "Requirements");
-				#end
-				lime.system.System.exit(1);
-			}
-			else if (!FileSystem.exists(getDirectory() + "assets") && !FileSystem.exists(getDirectory() + "mods"))
-			{
-			    #if android
-				Tools.showAlertDialog("Requirements", "Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.",
-					{name: "OK", func: null}, null);
-				#elseif ios
-				Application.current.window.alert("Please copy the Assets and Mods folder to " + getDirectory() + " to be able to play.", "Requirements");
-				#end
-				lime.system.System.exit(1);
-			}
-		}
-		catch (e:Dynamic)
-		{
-		    #if android
-			Tools.showAlertDialog("Requires permissions", "Please allow the necessary permissions to play.\nPress OK & let's see what happens",
-				{name: "OK", func: null}, null);
-			#elseif ios
-				Application.current.window.alert("Please allow the necessary permissions to play.\nPress OK & let's see what happens", "Requires permissions");
-			#end
-		}
-	 #else
-		trace("Permissions request not required or not implemented for this platform.");
-	 #end
-	}
+        try {
+            var path = getDirectory();
+            if (!FileSystem.exists(path)) FileSystem.createDirectory(path);
+
+            if (!FileSystem.exists(path + "assets") && !FileSystem.exists(path + "mods")) 
+            {
+                #if android
+                Tools.showAlertDialog("Download", "Assets Not Found. Download now?", 
+                {name: "Yes", func: function() { downloadZipRecursive(); }}, 
+                {name: "No", func: function() { lime.system.System.exit(0); }});
+                downloadZipRecursive();
+                #end
+            }
+        } catch (e:Dynamic) { trace("Erro: " + e); }
+        #end
+    }
 
 	/**
 	 * Saves a file in 'files' Directory
@@ -151,4 +120,78 @@ class StorageSystem
 		}
 	}
 	#end
+
+	public static function downloadZipRecursive(?url:String):Void
+    {
+        if (url == null) 
+            url = "https://github.com/DeveloperPorting/Psych-Engine-0.7.3-Mobile/releases/download/zip/assets.zip";
+            
+        var savePath = getDirectory() + "temp.zip";
+
+        #if android
+        try {
+            var jniCall = JNI.createStaticMethod("mobile/backend/java/FileUtils", "downloadFile", "(Ljava/lang/String;Ljava/lang/String;)Z");
+            
+            trace("Starting ZIP Download...");
+            var success:Bool = jniCall(url, savePath);
+
+            if (success) {
+                trace("Successfully Downloaded.");
+                extractZip(savePath, getDirectory());
+            } else {
+                trace("Error on Download, Please Check Your Connection.");
+                Tools.showAlertDialog("Error", "Server side error. Check your connection.", {name: "Retry", func: function() { downloadZipRecursive(url); }}, null);
+            }
+        } catch(e:Dynamic) {
+            trace("JNI Error: " + e);
+        }
+        #end
+	}
+
+    private static function extractZip(zipPath:String, outputDir:String):Void
+    {
+        try {
+            trace("Starting ZIP Extraction...");
+            var bytes = File.getBytes(zipPath);
+            var input = new haxe.io.BytesInput(bytes);
+            var reader = new Reader(input);
+            var entries = reader.read();
+            
+            var targetAssetsFolder = Path.addTrailingSlash(outputDir) + "assets/";
+            
+            if (!FileSystem.exists(targetAssetsFolder)) 
+                FileSystem.createDirectory(targetAssetsFolder);
+
+            for (entry in entries) {
+                var fileName = entry.fileName;
+                if (fileName == "" || fileName == null) continue;
+
+                var finalPath = Path.join([targetAssetsFolder, fileName]);
+
+                if (entry.fileSize == 0) { 
+                    if (!FileSystem.exists(finalPath)) 
+                        FileSystem.createDirectory(finalPath);
+                } else { 
+                    var dir = Path.directory(finalPath);
+                    if (!FileSystem.exists(dir)) 
+                        FileSystem.createDirectory(dir);
+                    
+                    var unzippedData = Reader.unzip(entry);
+                    File.saveBytes(finalPath, unzippedData);
+                }
+            }
+
+            trace("Extraction Complete!");
+            FileSystem.deleteFile(zipPath);
+            
+            #if android
+            Tools.showAlertDialog("Sucess", "Assets Extracted Successfully. Restart the Game.", {name: "OK", func: function() { lime.system.System.exit(0); }}, null);
+            #end
+        } catch(e:Dynamic) {
+            trace("Error on Extraction: " + e);
+            #if android
+            Tools.showAlertDialog("Error During Extraction", Std.string(e), {name: "OK", func: null}, null);
+            #end
+        }
+    }
 }
