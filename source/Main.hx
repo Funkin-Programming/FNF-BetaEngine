@@ -52,6 +52,7 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
+		
         #if mobile
         var assetsExists = FileSystem.exists(StorageSystem.getDirectory() + "assets");
         var modsExists = FileSystem.exists(StorageSystem.getDirectory() + "mods");

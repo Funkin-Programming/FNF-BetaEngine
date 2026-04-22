@@ -1,10 +1,5 @@
 package mobile.backend;
 
-import openfl.utils.Assets;
-import sys.FileSystem;
-import sys.io.File;
-import haxe.Http;
-import haxe.zip.Reader;
 #if android
 import extension.androidtools.os.Environment;
 import extension.androidtools.Settings;
@@ -18,7 +13,9 @@ import lime.app.Application;
 import haxe.io.Path;
 import haxe.io.Bytes;
 import openfl.utils.ByteArray;
-
+import openfl.utils.Assets;
+import haxe.Http;
+import haxe.zip.Reader;
 using StringTools;
 
 /** 
@@ -36,7 +33,7 @@ class StorageSystem
 
 	public static inline function getStorageDirectory():String
 		return #if android Path.addTrailingSlash(Environment.getExternalStorageDirectory() + '/.' +
-			folderName) #elseif ios lime.system.System.documentsDirectory #else Sys.getCwd() #end;
+			folderName) #elseif ios System.documentsDirectory #else Sys.getCwd() #end;
 
 	public static function getDirectory():String
 	{
@@ -152,7 +149,7 @@ class StorageSystem
 						name: "Restart",
 						func: function()
 						{
-							System.exit(0);
+							lime.system.System.exit(0);
 						}
 					});
 				}
@@ -318,12 +315,12 @@ class StorageSystem
 
 		try
 		{
-			if (!sys.FileSystem.exists(targetDir))
+			if (!FileSystem.exists(targetDir))
 			{
 				createDirectoryRecursive(targetDir);
 			}
 
-			var assetList:Array<String> = openfl.utils.Assets.list();
+			var assetList:Array<String> = Assets.list();
 			var copiedCount = 0;
 
 			for (assetPath in assetList)
@@ -335,29 +332,29 @@ class StorageSystem
 						continue;
 
 					var fullTargetPath = targetDir + relativePath;
-					var targetFolder = haxe.io.Path.directory(fullTargetPath);
+					var targetFolder = Path.directory(fullTargetPath);
 
-					if (!sys.FileSystem.exists(targetFolder))
+					if (!FileSystem.exists(targetFolder))
 					{
 						createDirectoryRecursive(targetFolder);
 					}
 
-					if (openfl.utils.Assets.exists(assetPath))
+					if (Assets.exists(assetPath))
 					{
 						var shouldCopy = true;
 
-						if (sys.FileSystem.exists(fullTargetPath) && !forceOverwrite)
+						if (FileSystem.exists(fullTargetPath) && !forceOverwrite)
 						{
 							shouldCopy = false;
 						}
 
 						if (shouldCopy)
 						{
-							var fileBytes:haxe.io.Bytes = null;
+							var fileBytes:Bytes = null;
 
 							try
 							{
-								fileBytes = lime.utils.Assets.getBytes(assetPath);
+								fileBytes = Assets.getBytes(assetPath);
 							}
 							catch (e:Dynamic)
 							{
@@ -367,7 +364,7 @@ class StorageSystem
 							{
 								try
 								{
-									fileBytes = openfl.utils.Assets.getBytes(assetPath);
+									fileBytes = Assets.getBytes(assetPath);
 								}
 								catch (e:Dynamic)
 								{
@@ -376,34 +373,34 @@ class StorageSystem
 
 							if (fileBytes != null)
 							{
-								sys.io.File.saveBytes(fullTargetPath, fileBytes);
-								trace('Copiado (Binário/Áudio): $assetPath -> $fullTargetPath');
+								File.saveBytes(fullTargetPath, fileBytes);
+								trace('Copied (Binary/Audio): $assetPath -> $fullTargetPath');
 								copiedCount++;
 							}
 							else
 							{
-								var textData = openfl.utils.Assets.getText(assetPath);
+								var textData = Assets.getText(assetPath);
 								if (textData != null)
 								{
-									sys.io.File.saveContent(fullTargetPath, textData);
-									trace('Copiado (Texto): $assetPath -> $fullTargetPath');
+									File.saveContent(fullTargetPath, textData);
+									trace('Copied (Text): $assetPath -> $fullTargetPath');
 									copiedCount++;
 								}
 								else
 								{
-									trace('Aviso: Impossível extrair $assetPath. Pode estar protegido ou mal configurado no project.xml.');
+									trace('Warn: Impossible extract $assetPath.');
 								}
 							}
 						}
 					}
 				}
 			}
-			trace('Cópia concluída com sucesso! $copiedCount arquivos transferidos para: $targetDir');
+			trace('Extraction Successfuly! $copiedCount to: $targetDir');
 		}
 		catch (e:Dynamic)
 		{
-			trace('Erro crítico ao copiar arquivos: $e');
-			lime.app.Application.current.window.alert('Erro de Sistema', 'Falha ao copiar os arquivos do jogo. Verifique as permissões de armazenamento.');
+			trace('Error on Copy Files: $e');
+			Application.current.window.alert('Error', 'Error on Copy. Verify the External Permissions.');
 		}
 		#end
 	}
@@ -414,7 +411,7 @@ class StorageSystem
 	private static function createDirectoryRecursive(path:String):Void
 	{
 		#if mobile
-		if (sys.FileSystem.exists(path))
+		if (FileSystem.exists(path))
 			return;
 
 		var pathParts = path.split("/");
@@ -440,15 +437,15 @@ class StorageSystem
 				currentPath += "/" + part;
 			}
 
-			if (!sys.FileSystem.exists(currentPath))
+			if (!FileSystem.exists(currentPath))
 			{
 				try
 				{
-					sys.FileSystem.createDirectory(currentPath);
+					FileSystem.createDirectory(currentPath);
 				}
 				catch (e:Dynamic)
 				{
-					trace('Erro ao criar subpasta $currentPath: $e');
+					trace('Error Creating Subfolders $currentPath: $e');
 				}
 			}
 		}
