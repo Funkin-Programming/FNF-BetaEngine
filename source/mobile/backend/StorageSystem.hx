@@ -20,7 +20,7 @@ using StringTools;
 
 /** 
  * @Authors StarNova (Cream.BR), LumiCoder (FNF BR)
- * @version: 0.1.4
+ * @version: 0.1.5 (Indev)
 **/
 class StorageSystem
 {
@@ -151,4 +151,111 @@ class StorageSystem
 		}
 	}
 	#end
+	
+   /**
+   * Recursively copies any folder from the APK (assets, mods, etc.) to the external directory
+   * @param sourceDir The source path within the APK (e.g., "assets/" or "mods/")
+   * @param targetDir Destination path (optional, uses getDirectory() + sourceDir if null)
+   * @param forceOverwrite If true, always replace files to ensure updates are applied
+   */
+  public static function copyFromAPK(sourceDir:String, targetDir:String = null, forceOverwrite:Bool = true):Void {
+    #if mobile
+    if (!StringTools.endsWith(sourceDir, "/")) sourceDir += "/";
+    
+    if (targetDir == null) {
+        targetDir = getDirectory() + sourceDir;
+    }
+    if (!StringTools.endsWith(targetDir, "/")) targetDir += "/";
+
+    try {
+        if (!sys.FileSystem.exists(targetDir)) {
+            createDirectoryRecursive(targetDir);
+        }
+
+        var assetList:Array<String> = openfl.utils.Assets.list();
+        var copiedCount = 0;
+
+        for (assetPath in assetList) {
+            if (StringTools.startsWith(assetPath, sourceDir)) {
+                
+                var relativePath = assetPath.substring(sourceDir.length);
+                if (relativePath == "") continue;
+                
+                var fullTargetPath = targetDir + relativePath;
+                var targetFolder = haxe.io.Path.directory(fullTargetPath);
+                
+                if (!sys.FileSystem.exists(targetFolder)) {
+                    createDirectoryRecursive(targetFolder);
+                }
+                
+                if (openfl.utils.Assets.exists(assetPath)) {
+                    var shouldCopy = true;
+                    
+                    if (sys.FileSystem.exists(fullTargetPath) && !forceOverwrite) {
+                        shouldCopy = false; // It only skips if forceOverwrite is false
+                    }
+                    
+                    if (shouldCopy) {
+                        var fileBytes:haxe.io.Bytes = openfl.utils.Assets.getBytes(assetPath);
+                        
+                        if (fileBytes != null) {
+                            sys.io.File.saveBytes(fullTargetPath, fileBytes);
+                            trace('Copiado: $assetPath -> $fullTargetPath');
+                            copiedCount++;
+                        } else {
+                            var textData = openfl.utils.Assets.getText(assetPath);
+                            if (textData != null) {
+                                sys.io.File.saveContent(fullTargetPath, textData);
+                                trace('Copiado (Texto): $assetPath -> $fullTargetPath');
+                                copiedCount++;
+                            } else {
+                                trace('Aviso: Não foi possível ler o arquivo $assetPath');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        trace('Cópia concluída com sucesso! $copiedCount arquivos transferidos para: $targetDir');
+    } catch (e:Dynamic) {
+        trace('Erro crítico ao copiar arquivos: $e');
+        lime.app.Application.current.window.alert('Erro de Sistema', 'Falha ao copiar os arquivos do jogo. Verifique as permissões de armazenamento do Android.');
+    }
+    #end
+  }
+
+  /**
+   * Creates folders recursively in a safe way, fixing the absolute paths bug in Android
+   */
+  private static function createDirectoryRecursive(path:String):Void {
+    #if mobile
+    if (sys.FileSystem.exists(path)) return;
+    
+    var pathParts = path.split("/");
+    var currentPath = "";
+    
+    if (StringTools.startsWith(path, "/")) {
+        currentPath = "/";
+        pathParts.shift();
+    }
+    
+    for (part in pathParts) {
+        if (part == "") continue;
+        
+        if (currentPath == "/") {
+            currentPath += part;
+        } else {
+            currentPath += "/" + part;
+        }
+        
+        if (!sys.FileSystem.exists(currentPath)) {
+            try {
+                sys.FileSystem.createDirectory(currentPath);
+            } catch (e:Dynamic) {
+                trace('Erro ao criar subpasta $currentPath: $e');
+            }
+        }
+    }
+    #end
+  }
 }

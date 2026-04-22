@@ -60,6 +60,7 @@ class Main extends Sprite
 		#if mobile
 		StorageSystem.getPermissions();
 		Sys.setCwd(StorageSystem.getStorageDirectory());
+		StorageSystem.copyFromAPK();
 		#end
 
 		if (stage != null)
