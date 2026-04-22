@@ -52,47 +52,19 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
+        #if mobile
+        var assetsExists = FileSystem.exists(StorageSystem.getDirectory() + "assets");
+        var modsExists = FileSystem.exists(StorageSystem.getDirectory() + "mods");
 
-		#if mobile
-		StorageSystem.getPermissions();
-		var folderCheck = StorageSystem.getDirectory() + "assets";
-		if (!FileSystem.exists(folderCheck))
-		{
-			var hasInternet:Bool = false;
-			try
-			{
-				var http = new haxe.Http("https://www.google.com");
-				http.onStatus = function(status) // checagem rapida para ver se tem internet
-				{
-					if (status == 200)
-						hasInternet = true;
-				};
-				http.request(false);
-			}
-			catch (e:Dynamic)
-			{
-				hasInternet = false;
-			}
+        if (!assetsExists || !modsExists) {
+            trace("Assets missing. Starting installation system...");
+            StorageSystem.getPermissions(); 
+            return; 
+        }
 
-			if (hasInternet)
-			{
-				trace("Internet detected! Downloading assets...");
-				StorageSystem.downloadZipRecursive();
-				StorageSystem.copyFromAPK("mods/"); // n fiz de mods ent ja usa esse
-				return;
-			}
-			else
-			{
-				trace("No internet! Copying base assets from APK...");
-				Sys.setCwd(StorageSystem.getStorageDirectory());
-				StorageSystem.copyFromAPK("assets/");
-			}
-		}
-		else
-		{
-			Sys.setCwd(StorageSystem.getStorageDirectory());
-		}
-		#end
+        StorageSystem.getPermissions();
+        Sys.setCwd(StorageSystem.getStorageDirectory());
+        #end
 
 		if (stage != null)
 		{

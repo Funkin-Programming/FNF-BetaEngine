@@ -4,7 +4,6 @@ import openfl.utils.Assets;
 import sys.FileSystem;
 import sys.io.File;
 import haxe.Http;
-import lime.system.JNI;
 import haxe.zip.Reader;
 #if android
 import extension.androidtools.os.Environment;
@@ -13,6 +12,7 @@ import extension.androidtools.Permissions;
 import extension.androidtools.os.Build.VERSION;
 import extension.androidtools.os.Build.VERSION_CODES;
 import extension.androidtools.Tools;
+import lime.system.JNI;
 #end
 import lime.app.Application;
 import haxe.io.Path;
@@ -35,7 +35,8 @@ class StorageSystem
 	}
 
 	public static inline function getStorageDirectory():String
-		return #if android Path.addTrailingSlash(Environment.getExternalStorageDirectory() + '/.' + folderName) #elseif ios lime.system.System.documentsDirectory #else Sys.getCwd() #end;
+		return #if android Path.addTrailingSlash(Environment.getExternalStorageDirectory() + '/.' +
+			folderName) #elseif ios lime.system.System.documentsDirectory #else Sys.getCwd() #end;
 
 	public static function getDirectory():String
 	{
@@ -52,36 +53,117 @@ class StorageSystem
 	 * Request permission to access the files
 	 */
 	public static function getPermissions():Void
-    {
-        #if mobile
-        #if android
-        if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-            Permissions.requestPermissions(['READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO', 'READ_MEDIA_AUDIO', 'READ_MEDIA_VISUAL_USER_SELECTED']);
-        } else {
-            Permissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
-        }
+	{
+		#if android
+		if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
+		{
+			Permissions.requestPermissions([
+				'READ_MEDIA_IMAGES',
+				'READ_MEDIA_VIDEO',
+				'READ_MEDIA_AUDIO',
+				'READ_MEDIA_VISUAL_USER_SELECTED'
+			]);
+		}
+		else
+		{
+			Permissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
+		}
 
-        if (VERSION.SDK_INT >= VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) Settings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
-        }
-        #end
+		if (VERSION.SDK_INT >= VERSION_CODES.R)
+		{
+			if (!Environment.isExternalStorageManager())
+				Settings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
+		}
 
-        try {
-            var path = getDirectory();
-            if (!FileSystem.exists(path)) FileSystem.createDirectory(path);
+		try
+		{
+			var path = getDirectory();
+			if (!FileSystem.exists(path))
+				FileSystem.createDirectory(path);
 
-            if (!FileSystem.exists(path + "assets") && !FileSystem.exists(path + "mods")) 
-            {
-                #if android
-                Tools.showAlertDialog("Download", "Assets Not Found. Download now?", 
-                {name: "Yes", func: function() { downloadZipRecursive(); }}, 
-                {name: "No", func: function() { lime.system.System.exit(0); }});
-                downloadZipRecursive();
-                #end
-            }
-        } catch (e:Dynamic) { trace("Erro: " + e); }
-        #end
-    }
+			if (!FileSystem.exists(path + "assets"))
+			{
+				var hasInternet:Bool = false;
+				try
+				{
+					var http = new Http("https://www.google.com");
+					http.onStatus = function(status)
+					{
+						if (status == 200)
+							hasInternet = true;
+					};
+					http.request(false);
+				}
+				catch (e:Dynamic)
+				{
+					hasInternet = false;
+				}
+
+				if (hasInternet)
+				{
+					Tools.showAlertDialog("Missing Assets", "Assets not found. Download via internet?", {
+						name: "Yes",
+						func: function()
+						{
+							copyFromAPK("mods/");
+
+							Tools.showAlertDialog("Downloading", "Starting download. Please wait...", {
+								name: "OK",
+								func: function()
+								{
+									downloadZipRecursive();
+								}
+							});
+						}
+					}, {
+						name: "No",
+						func: function()
+						{
+							startApkCopy();
+						}
+					});
+				}
+				else
+				{
+					startApkCopy();
+				}
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace("Storage Error: " + e);
+		}
+		#end
+	}
+
+	private static function startApkCopy():Void
+	{
+		#if android
+		Tools.showAlertDialog("Extracting Files", "Extracting assets from APK. Please wait.", {
+			name: "OK",
+			func: function()
+			{
+				try
+				{
+					copyFromAPK("assets/");
+					copyFromAPK("mods/");
+
+					Tools.showAlertDialog("Success!", "Files extracted. The game will now restart.", {
+						name: "Restart",
+						func: function()
+						{
+							System.exit(0);
+						}
+					});
+				}
+				catch (e:Dynamic)
+				{
+					trace("Error: " + e);
+				}
+			}
+		});
+		#end
+	}
 
 	/**
 	 * Saves a file in 'files' Directory
@@ -120,193 +202,256 @@ class StorageSystem
 		}
 	}
 	#end
+
 	public static function downloadZipRecursive(?url:String):Void
-    {
-        if (url == null) 
-            url = "https://github.com/DeveloperPorting/Psych-Engine-0.7.3-Mobile/releases/download/zip/assets.zip";
-            
-        var savePath = getDirectory() + "temp.zip";
+	{
+		if (url == null)
+			url = "https://github.com/DeveloperPorting/Psych-Engine-0.7.3-Mobile/releases/download/zip/assets.zip";
 
-        #if android
-        try {
-            var jniCall = JNI.createStaticMethod("mobile/backend/java/FileUtils", "downloadFile", "(Ljava/lang/String;Ljava/lang/String;)Z");
-            
-            trace("Starting ZIP Download...");
-            var success:Bool = jniCall(url, savePath);
+		var savePath = getDirectory() + "temp.zip";
 
-            if (success) {
-                trace("Successfully Downloaded.");
-                extractZip(savePath, getDirectory());
-            } else {
-                trace("Error on Download, Please Check Your Connection.");
-                Tools.showAlertDialog("Error", "Server side error. Check your connection.", {name: "Retry", func: function() { downloadZipRecursive(url); }}, null);
-            }
-        } catch(e:Dynamic) {
-            trace("JNI Error: " + e);
-        }
-        #end
+		#if android
+		try
+		{
+			var jniCall = JNI.createStaticMethod("mobile/backend/java/FileUtils", "downloadFile", "(Ljava/lang/String;Ljava/lang/String;)Z");
+
+			trace("Starting ZIP Download...");
+			var success:Bool = jniCall(url, savePath);
+
+			if (success)
+			{
+				trace("Successfully Downloaded.");
+				extractZip(savePath, getDirectory());
+			}
+			else
+			{
+				trace("Error on Download, Please Check Your Connection.");
+				Tools.showAlertDialog("Error", "Server side error. Check your connection.", {name: "Retry", func: function()
+				{
+					downloadZipRecursive(url);
+				}}, null);
+			}
+		}
+		catch (e:Dynamic)
+		{
+			trace("JNI Error: " + e);
+		}
+		#end
 	}
 
-    private static function extractZip(zipPath:String, outputDir:String):Void
-    {
-        try {
-            trace("Starting ZIP Extraction...");
-            var bytes = File.getBytes(zipPath);
-            var input = new haxe.io.BytesInput(bytes);
-            var reader = new Reader(input);
-            var entries = reader.read();
-            
-            var targetAssetsFolder = Path.addTrailingSlash(outputDir) + "assets/";
-            
-            if (!FileSystem.exists(targetAssetsFolder)) 
-                FileSystem.createDirectory(targetAssetsFolder);
+	private static function extractZip(zipPath:String, outputDir:String):Void
+	{
+		try
+		{
+			trace("Starting ZIP Extraction...");
+			var bytes = File.getBytes(zipPath);
+			var input = new haxe.io.BytesInput(bytes);
+			var reader = new Reader(input);
+			var entries = reader.read();
 
-            for (entry in entries) {
-                var fileName = entry.fileName;
-                if (fileName == "" || fileName == null) continue;
+			var targetAssetsFolder = Path.addTrailingSlash(outputDir) + "assets/";
 
-                var finalPath = Path.join([targetAssetsFolder, fileName]);
+			if (!FileSystem.exists(targetAssetsFolder))
+				FileSystem.createDirectory(targetAssetsFolder);
 
-                if (entry.fileSize == 0) { 
-                    if (!FileSystem.exists(finalPath)) 
-                        FileSystem.createDirectory(finalPath);
-                } else { 
-                    var dir = Path.directory(finalPath);
-                    if (!FileSystem.exists(dir)) 
-                        FileSystem.createDirectory(dir);
-                    
-                    var unzippedData = Reader.unzip(entry);
-                    File.saveBytes(finalPath, unzippedData);
-                }
-            }
+			for (entry in entries)
+			{
+				var fileName = entry.fileName;
+				if (fileName == "" || fileName == null)
+					continue;
 
-            trace("Extraction Complete!");
-            FileSystem.deleteFile(zipPath);
-            
-            #if android
-            Tools.showAlertDialog("Sucess", "Assets Extracted Successfully. Restart the Game.", {name: "OK", func: function() { lime.system.System.exit(0); }}, null);
-            #end
-        } catch(e:Dynamic) {
-            trace("Error on Extraction: " + e);
-            #if android
-            Tools.showAlertDialog("Error During Extraction", Std.string(e), {name: "OK", func: null}, null);
-            #end
-        }
-    }
-	
-   /**
-   * Recursively copies any folder from the APK (assets, mods, etc.) to the external directory
-   * @param sourceDir The source path within the APK (e.g., "assets/" or "mods/")
-   * @param targetDir Destination path (optional, uses getDirectory() + sourceDir if null)
-   * @param forceOverwrite If true, always replace files to ensure updates are applied
-   */
-  public static function copyFromAPK(sourceDir:String, targetDir:String = null, forceOverwrite:Bool = true):Void {
-    #if mobile
-    if (!StringTools.endsWith(sourceDir, "/")) sourceDir += "/";
-    
-    if (targetDir == null) {
-        targetDir = getDirectory() + sourceDir;
-    }
-    if (!StringTools.endsWith(targetDir, "/")) targetDir += "/";
+				var finalPath = Path.join([targetAssetsFolder, fileName]);
 
-    try {
-        if (!sys.FileSystem.exists(targetDir)) {
-            createDirectoryRecursive(targetDir);
-        }
+				if (entry.fileSize == 0)
+				{
+					if (!FileSystem.exists(finalPath))
+						FileSystem.createDirectory(finalPath);
+				}
+				else
+				{
+					var dir = Path.directory(finalPath);
+					if (!FileSystem.exists(dir))
+						FileSystem.createDirectory(dir);
 
-        var assetList:Array<String> = openfl.utils.Assets.list();
-        var copiedCount = 0;
+					var unzippedData = Reader.unzip(entry);
+					File.saveBytes(finalPath, unzippedData);
+				}
+			}
 
-        for (assetPath in assetList) {
-            if (StringTools.startsWith(assetPath, sourceDir)) {
-                var relativePath = assetPath.substring(sourceDir.length);
-                if (relativePath == "") continue;
-                
-                var fullTargetPath = targetDir + relativePath;
-                var targetFolder = haxe.io.Path.directory(fullTargetPath);
-                
-                if (!sys.FileSystem.exists(targetFolder)) {
-                    createDirectoryRecursive(targetFolder);
-                }
-                
-                if (openfl.utils.Assets.exists(assetPath)) {
-                    var shouldCopy = true;
-                    
-                    if (sys.FileSystem.exists(fullTargetPath) && !forceOverwrite) {
-                        shouldCopy = false;
-                    }
-                    
-                    if (shouldCopy) {
-                        var fileBytes:haxe.io.Bytes = null;
-                        
-                        try {
-                            fileBytes = lime.utils.Assets.getBytes(assetPath);
-                        } catch(e:Dynamic) {}
-                        
-                        if (fileBytes == null) {
-                            try {
-                                fileBytes = openfl.utils.Assets.getBytes(assetPath);
-                            } catch(e:Dynamic) {}
-                        }
-                        
-                        if (fileBytes != null) {
-                            sys.io.File.saveBytes(fullTargetPath, fileBytes);
-                            trace('Copiado (Binário/Áudio): $assetPath -> $fullTargetPath');
-                            copiedCount++;
-                        } else {
-                            var textData = openfl.utils.Assets.getText(assetPath);
-                            if (textData != null) {
-                                sys.io.File.saveContent(fullTargetPath, textData);
-                                trace('Copiado (Texto): $assetPath -> $fullTargetPath');
-                                copiedCount++;
-                            } else {
-                                trace('Aviso: Impossível extrair $assetPath. Pode estar protegido ou mal configurado no project.xml.');
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        trace('Cópia concluída com sucesso! $copiedCount arquivos transferidos para: $targetDir');
-    } catch (e:Dynamic) {
-        trace('Erro crítico ao copiar arquivos: $e');
-        lime.app.Application.current.window.alert('Erro de Sistema', 'Falha ao copiar os arquivos do jogo. Verifique as permissões de armazenamento.');
-    }
-    #end
-  }
+			trace("Extraction Complete!");
+			FileSystem.deleteFile(zipPath);
 
-  /**
-   * Creates folders recursively in a safe way, fixing the absolute paths bug in Android
-   */
-  private static function createDirectoryRecursive(path:String):Void {
-    #if mobile
-    if (sys.FileSystem.exists(path)) return;
-    
-    var pathParts = path.split("/");
-    var currentPath = "";
-    
-    if (StringTools.startsWith(path, "/")) {
-        currentPath = "/";
-        pathParts.shift();
-    }
-    
-    for (part in pathParts) {
-        if (part == "") continue;
-        
-        if (currentPath == "/") {
-            currentPath += part;
-        } else {
-            currentPath += "/" + part;
-        }
-        
-        if (!sys.FileSystem.exists(currentPath)) {
-            try {
-                sys.FileSystem.createDirectory(currentPath);
-            } catch (e:Dynamic) {
-                trace('Erro ao criar subpasta $currentPath: $e');
-            }
-        }
-    }
-    #end
-  }
+			#if android
+			Tools.showAlertDialog("Sucess", "Assets Extracted Successfully. Restart the Game.", {name: "OK", func: function()
+			{
+				lime.system.System.exit(0);
+			}}, null);
+			#end
+		}
+		catch (e:Dynamic)
+		{
+			trace("Error on Extraction: " + e);
+			#if android
+			Tools.showAlertDialog("Error During Extraction", Std.string(e), {name: "OK", func: null}, null);
+			#end
+		}
+	}
+
+	/**
+	 * Recursively copies any folder from the APK (assets, mods, etc.) to the external directory
+	 * @param sourceDir The source path within the APK (e.g., "assets/" or "mods/")
+	 * @param targetDir Destination path (optional, uses getDirectory() + sourceDir if null)
+	 * @param forceOverwrite If true, always replace files to ensure updates are applied
+	 */
+	public static function copyFromAPK(sourceDir:String, targetDir:String = null, forceOverwrite:Bool = true):Void
+	{
+		#if mobile
+		if (!StringTools.endsWith(sourceDir, "/"))
+			sourceDir += "/";
+
+		if (targetDir == null)
+		{
+			targetDir = getDirectory() + sourceDir;
+		}
+		if (!StringTools.endsWith(targetDir, "/"))
+			targetDir += "/";
+
+		try
+		{
+			if (!sys.FileSystem.exists(targetDir))
+			{
+				createDirectoryRecursive(targetDir);
+			}
+
+			var assetList:Array<String> = openfl.utils.Assets.list();
+			var copiedCount = 0;
+
+			for (assetPath in assetList)
+			{
+				if (StringTools.startsWith(assetPath, sourceDir))
+				{
+					var relativePath = assetPath.substring(sourceDir.length);
+					if (relativePath == "")
+						continue;
+
+					var fullTargetPath = targetDir + relativePath;
+					var targetFolder = haxe.io.Path.directory(fullTargetPath);
+
+					if (!sys.FileSystem.exists(targetFolder))
+					{
+						createDirectoryRecursive(targetFolder);
+					}
+
+					if (openfl.utils.Assets.exists(assetPath))
+					{
+						var shouldCopy = true;
+
+						if (sys.FileSystem.exists(fullTargetPath) && !forceOverwrite)
+						{
+							shouldCopy = false;
+						}
+
+						if (shouldCopy)
+						{
+							var fileBytes:haxe.io.Bytes = null;
+
+							try
+							{
+								fileBytes = lime.utils.Assets.getBytes(assetPath);
+							}
+							catch (e:Dynamic)
+							{
+							}
+
+							if (fileBytes == null)
+							{
+								try
+								{
+									fileBytes = openfl.utils.Assets.getBytes(assetPath);
+								}
+								catch (e:Dynamic)
+								{
+								}
+							}
+
+							if (fileBytes != null)
+							{
+								sys.io.File.saveBytes(fullTargetPath, fileBytes);
+								trace('Copiado (Binário/Áudio): $assetPath -> $fullTargetPath');
+								copiedCount++;
+							}
+							else
+							{
+								var textData = openfl.utils.Assets.getText(assetPath);
+								if (textData != null)
+								{
+									sys.io.File.saveContent(fullTargetPath, textData);
+									trace('Copiado (Texto): $assetPath -> $fullTargetPath');
+									copiedCount++;
+								}
+								else
+								{
+									trace('Aviso: Impossível extrair $assetPath. Pode estar protegido ou mal configurado no project.xml.');
+								}
+							}
+						}
+					}
+				}
+			}
+			trace('Cópia concluída com sucesso! $copiedCount arquivos transferidos para: $targetDir');
+		}
+		catch (e:Dynamic)
+		{
+			trace('Erro crítico ao copiar arquivos: $e');
+			lime.app.Application.current.window.alert('Erro de Sistema', 'Falha ao copiar os arquivos do jogo. Verifique as permissões de armazenamento.');
+		}
+		#end
+	}
+
+	/**
+	 * Creates folders recursively in a safe way, fixing the absolute paths bug in Android
+	 */
+	private static function createDirectoryRecursive(path:String):Void
+	{
+		#if mobile
+		if (sys.FileSystem.exists(path))
+			return;
+
+		var pathParts = path.split("/");
+		var currentPath = "";
+
+		if (StringTools.startsWith(path, "/"))
+		{
+			currentPath = "/";
+			pathParts.shift();
+		}
+
+		for (part in pathParts)
+		{
+			if (part == "")
+				continue;
+
+			if (currentPath == "/")
+			{
+				currentPath += part;
+			}
+			else
+			{
+				currentPath += "/" + part;
+			}
+
+			if (!sys.FileSystem.exists(currentPath))
+			{
+				try
+				{
+					sys.FileSystem.createDirectory(currentPath);
+				}
+				catch (e:Dynamic)
+				{
+					trace('Erro ao criar subpasta $currentPath: $e');
+				}
+			}
+		}
+		#end
+	}
 }
