@@ -5,7 +5,7 @@ import flixel.util.FlxDestroyUtil;
 import openfl.display.BitmapData;
 import openfl.display.Shape;
 import mobile.backend.flixel.FlxButton;
-import mobile.backend.flixel.input.FlxMobileInputManager;
+import mobile.backend.flixel.input.TouchInputManager;
 import mobile.backend.flixel.input.FlxMobileInputID;
 
 /**
@@ -13,7 +13,7 @@ import mobile.backend.flixel.input.FlxMobileInputID;
  * @author StarNova (Cream.BR)
  */
  
-class MobileHitbox extends FlxMobileInputManager
+class MobileHitbox extends TouchInputManager
 {
 	public var buttons:Array<FlxButton> = [];
 	
@@ -50,7 +50,7 @@ class MobileHitbox extends FlxMobileInputManager
 		buttonRight = buttons[3];
 
 		scrollFactor.set();
-		updateTrackedButtons();
+		refreshMappedButtons();
 	}
 
 	private function createHint(X:Float, Y:Float, Width:Int, Height:Int, Color:FlxColor, IDs:Array<FlxMobileInputID>):FlxButton
