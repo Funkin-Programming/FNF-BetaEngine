@@ -86,7 +86,6 @@ class MobileVirtualPad extends TouchInputManager
 				buttonLeft = add(createButton(0, FlxG.height - 243, 'left', 0xFF00FF, [LEFT, noteLEFT]));
 				buttonRight = add(createButton(207, FlxG.height - 243, 'right', 0xFF0000, [RIGHT, noteRIGHT]));
 				buttonDown = add(createButton(105, FlxG.height - 135, 'down', 0x00FFFF, [DOWN, noteDOWN]));
-				buttonDown = add(createButton(105, FlxG.height - 135, 'down', 0x00FFFF, [DOWN, noteDOWN]));
 			case NONE:
 				// lmao
 			default:
