@@ -151,13 +151,17 @@ class NoteSplashDebugState extends MusicBeatState
 		curAnimText.scrollFactor.set();
 		add(curAnimText);
 
+		#if desktop
 		var text:FlxText = new FlxText(0, 520, FlxG.width, "Press SPACE to Reset animation\n
 			Press ENTER twice to save to the loaded Note Splash PNG's folder\n
 			A/D change selected note - Arrow Keys to change offset (Hold shift for 10x)\n
 			Ctrl + C/V - Copy & Paste", 16);
-		text.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		text.scrollFactor.set();
-		add(text);
+			#else
+     	var text:FlxText = new FlxText(0, 520, FlxG.width, "Press Y to Reset animation\n
+			Press A twice to save to the loaded Note Splash PNG's folder\n
+			UP/DOWN change selected note - Arrow Keys to change offset (Hold Z for 10x)\n
+			C/V - Copy & Paste", 16);
+			#end
 
 		savedText = new FlxText(0, 340, FlxG.width, '', 24);
 		savedText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -180,7 +184,20 @@ class NoteSplashDebugState extends MusicBeatState
 
 		#if mobile
 		addVirtualPad(LEFT_FULL, NOTE_SPLASH_DEBUG);
-		virtualPad.buttonUp.y += virtualPad.buttonDown.y += virtualPad.buttonLeft.y += virtualPad.buttonRight.y += 40;
+		virtualPad.buttonUp.y -= 370;
+        virtualPad.buttonDown.y -= 370;
+        virtualPad.buttonLeft.y -= 370;
+        virtualPad.buttonRight.y -= 370;
+	
+		virtualPad.buttonUp2.y -= 370;
+        virtualPad.buttonDown2.y -= 370;
+        virtualPad.buttonLeft2.y -= 370;
+        virtualPad.buttonRight2.y -= 370;
+
+        virtualPad.buttonUp2.x -= 120;
+        virtualPad.buttonDown2.x -= 120;
+        virtualPad.buttonLeft2.x -= 130;
+        virtualPad.buttonRight2.x -= 115;
 		#end
 
 		super.create();
@@ -320,7 +337,7 @@ class NoteSplashDebugState extends MusicBeatState
 				forceFrame = maxFrame - 1;
 			// trace('curFrame: $forceFrame');
 
-			curFrameText.text = 'Force Frame: ${forceFrame + 1} / $maxFrame\n(Press Q/E to change)';
+			curFrameText.text = 'Force Frame: ${forceFrame + 1} / $maxFrame\n(Press X/D to change)';
 			splashes.forEachAlive(function(spr:FlxSprite)
 			{
 				spr.animation.curAnim.paused = true;
@@ -454,7 +471,7 @@ class NoteSplashDebugState extends MusicBeatState
 			else if (curAnim < 1)
 				curAnim = maxAnims;
 
-			curAnimText.text = 'Current Animation: $curAnim / $maxAnims\n(Press W/S to change)';
+			curAnimText.text = 'Current Animation: $curAnim / $maxAnims\n(Press RIGHT/LEFT to change)';
 			curFrameText.text = 'Force Frame Disabled\n(Press Q/E to change)';
 
 			for (i in 0...maxNotes)
