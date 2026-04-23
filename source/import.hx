@@ -37,7 +37,7 @@ import backend.Conductor;
 import backend.BaseStage;
 import backend.Difficulty;
 import backend.Mods;
-
+import lime.app.Application;
 import objects.Alphabet;
 import objects.BGSprite;
 

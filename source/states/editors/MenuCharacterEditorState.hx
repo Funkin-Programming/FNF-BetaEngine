@@ -89,6 +89,7 @@ class MenuCharacterEditorState extends MusicBeatState
 		addCharacterUI();
 		add(UI_mainbox);
 
+		#if (mobile || desktop)
 		var loadButton:FlxButton = new FlxButton(0, 480, "Load Character", function()
 		{
 			loadCharacter();
@@ -96,7 +97,9 @@ class MenuCharacterEditorState extends MusicBeatState
 		loadButton.screenCenter(X);
 		loadButton.x -= 60;
 		add(loadButton);
-
+        #else
+		Application.current.window.alert('Sorry!', 'IOS Platform is not Suported.');
+		#end
 		var saveButton:FlxButton = new FlxButton(0, 480, "Save Character", function()
 		{
 			saveCharacter();
