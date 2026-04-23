@@ -402,16 +402,22 @@ class DialogueCharacterEditorState extends MusicBeatState
 			reloadCharacter();
 		});
 
+		#if (mobile || desktop)
 		var loadButton:FlxButton = new FlxButton(reloadImageButton.x + 100, reloadImageButton.y, "Load Character", function()
 		{
 			loadCharacter();
 		});
+		#else
+		Application.current.window.alert('Sorry!', 'IOS Platform is not Suported.');
+		#end
 		var saveButton:FlxButton = new FlxButton(loadButton.x, reloadImageButton.y - 25, "Save Character", function()
 		{
 			saveCharacter();
 		});
 		tab_group.add(reloadImageButton);
+		#if (android || desktop)
 		tab_group.add(loadButton);
+		#end
 		tab_group.add(saveButton);
 		UI_mainbox.addGroup(tab_group);
 	}

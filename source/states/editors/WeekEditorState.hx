@@ -106,11 +106,6 @@ class WeekEditorState extends MusicBeatState
 
 		FlxG.mouse.visible = true;
 
-		/* #if mobile
-			addVirtualPad(NONE, B);
-			virtualPad.x -= 300;
-			#end */
-
 		super.create();
 	}
 
@@ -131,6 +126,7 @@ class WeekEditorState extends MusicBeatState
 		UI_box.selected_tab_id = 'Week';
 		add(UI_box);
 
+		#if (android || desktop)
 		var loadWeekButton:FlxButton = new FlxButton(0, 650, "Load Week", function()
 		{
 			loadWeek();
@@ -138,6 +134,9 @@ class WeekEditorState extends MusicBeatState
 		loadWeekButton.screenCenter(X);
 		loadWeekButton.x -= 120;
 		add(loadWeekButton);
+		#else
+		Application.current.window.alert('Sorry!', 'IOS Platform is not Suported.');
+		#end
 
 		var freeplayButton:FlxButton = new FlxButton(0, 650, "Freeplay", function()
 		{
