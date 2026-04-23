@@ -180,6 +180,7 @@ class NoteSplashDebugState extends MusicBeatState
 
 		#if mobile
 		addVirtualPad(LEFT_FULL, CHART_EDITOR);
+		virtualPad.buttonUp += virtualPad.buttonDown += virtualPad.buttonLeft += virtualPad.buttonRight += 40;
 		#end
 
 		super.create();
@@ -214,11 +215,11 @@ class NoteSplashDebugState extends MusicBeatState
 		{
 			var movex = 0;
 			var movey = 0;
-			if(FlxG.keys.justPressed.LEFT) movex = -1;
-			else if(FlxG.keys.justPressed.RIGHT) movex = 1;
+			if(FlxG.keys.justPressed.LEFT #if mobile || virtualPad.buttonLeft.justPressed #end) movex = -1;
+			else if(FlxG.keys.justPressed.RIGHT #if mobile || virtualPad.buttonRight.justPressed #end) movex = 1;
 
-			if(FlxG.keys.justPressed.UP) movey = 1;
-			else if(FlxG.keys.justPressed.DOWN) movey = -1;
+			if(FlxG.keys.justPressed.UP #if mobile || virtualPad.buttonUp.justPressed #end) movey = 1;
+			else if(FlxG.keys.justPressed.DOWN #if mobile || virtualPad.buttonDown.justPressed #end) movey = -1;
 			
 			if(FlxG.keys.pressed.SHIFT #if mobile || virtualPad.buttonZ.pressed #end)
 			{

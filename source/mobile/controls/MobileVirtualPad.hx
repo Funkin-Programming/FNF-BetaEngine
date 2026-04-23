@@ -126,6 +126,20 @@ class MobileVirtualPad extends TouchInputManager
                 buttonB = add(createButton(screenW - 258, screenH - 135, 'b', 0xFFCB00, [B]));
                 buttonZ = add(createButton(screenW - 132, screenH - 255, 'z', 0xCCB98E, [Z]));
                 buttonA = add(createButton(screenW - 132, screenH - 135, 'a', 0xFF0000, [A]));
+            case NOTE_SPLASH_DEBUG:
+                buttonUp2 = add(createButton(screenW - 105, screenH - 345, 'up', 0x00FF00, [UP, noteUP]));
+                buttonLeft2 = add(createButton(screenW, screenH - 243, 'left', 0xFF00FF, [LEFT, noteLEFT]));
+                buttonRight2 = add(createButton(screenW - 207, screenH - 243, 'right', 0xFF0000, [RIGHT, noteRIGHT]));
+                buttonDown2 = add(createButton(screenW - 105, screenH - 135, 'down', 0x00FFFF, [DOWN, noteDOWN]));
+                
+                buttonV = add(createButton(screenW - 510, screenH - 255, 'v', 0x49A9B2, [V]));
+                buttonD = add(createButton(screenW - 510, screenH - 135, 'd', 0x0078FF, [D]));
+                buttonX = add(createButton(screenW - 384, screenH - 255, 'x', 0x99062D, [X]));
+                buttonC = add(createButton(screenW - 384, screenH - 135, 'c', 0x44FF00, [C]));
+                buttonY = add(createButton(screenW - 258, screenH - 255, 'y', 0x4A35B9, [Y]));
+                buttonB = add(createButton(screenW - 258, screenH - 135, 'b', 0xFFCB00, [B]));
+                buttonZ = add(createButton(screenW - 132, screenH - 255, 'z', 0xCCB98E, [Z]));
+                buttonA = add(createButton(screenW - 132, screenH - 135, 'a', 0xFF0000, [A]));
             case NONE:
                 // lmao
             default:
