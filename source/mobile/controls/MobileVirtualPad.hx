@@ -33,7 +33,7 @@ enum MobileActionMode
 	A_B_C;
 	CHART_EDITOR;
 	CHARACTER_EDITOR;
-    NOTE_SPLASH_DEBUG
+    NOTE_SPLASH_DEBUG;
 	NONE;
 }
 
