@@ -39,9 +39,10 @@ class CreditsState extends MusicBeatState
 		#end
 
 		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
-	    	['Developer Porting Team'],
-			['Cream.BR',		'creambr',		'Lead programmer for Port Mobile\n(My name is also StarNova)',		'https://youtube.com/@creambroficial', 		'EFD0A4'],
-			['FNF BR',				'fnfbr',			'Programmer for Port Mobile',						 'https://youtube.com/@fnf-br',		'00BBFF'],
+	    	["Funkin' Network Crew"],
+			['StarNova',		'starnova',		'Lead Programmer for Port Mobile',		'https://youtube.com/@starnovaoficial', 		'AA4060'],
+			['FNF BR',				'fnfbr',			'Programmer for Port Mobile',						 'https://youtube.com/@fnf-br',		'A2DCF8'],
+			['GaboXey',				'gaboxey',			"Funkin' Network Credits Icons",						 'https://youtube.com/@gaboxey',		'775EF3'],
 			[''],
 			['Psych Engine Team'],
 			['Shadow Mario',		'shadowmario',		'Main Programmer and Head of Psych Engine',					 'https://ko-fi.com/shadowmario',		'444444'],
