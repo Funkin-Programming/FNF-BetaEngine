@@ -40,8 +40,8 @@ class CreditsState extends MusicBeatState
 
 		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
 	    	["Funkin' Network Crew"],
-			['StarNova',		'starnova',		'Lead Programmer for Port Mobile',		'https://youtube.com/@starnovaoficial', 		'AA4060'],
-			['FNF BR',				'fnfbr',			'Programmer for Port Mobile',						 'https://youtube.com/@fnf-br',		'A2DCF8'],
+			['StarNova',		'starnova',		'Lead #1 Programmer for Port Mobile',		'https://youtube.com/@starnovaoficial', 		'AA4060'],
+			['FNF BR',				'fnfbr',			'Lead #2 Programmer for Port Mobile',						 'https://youtube.com/@fnf-br',		'A2DCF8'],
 			['GaboXey',				'gaboxey',			"Funkin' Network Credits Icons",						 'https://youtube.com/@gaboxey',		'775EF3'],
 			[''],
 			['Psych Engine Team'],

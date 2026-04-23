@@ -151,7 +151,7 @@ class DialogueEditorState extends MusicBeatState
 		#else
 		Application.current.window.alert('Sorry!', 'IOS Platform is not Suported.');
 		#end
-		var saveButton:FlxButton = new FlxButton(loadButton.x + 120, loadButton.y, "Save Dialogue", function()
+		var saveButton:FlxButton = new FlxButton(20 + 120, lineInputText.y + 25, "Save Dialogue", function()
 		{
 			saveDialogue();
 		});
@@ -165,7 +165,7 @@ class DialogueEditorState extends MusicBeatState
 		tab_group.add(speedStepper);
 		tab_group.add(soundInputText);
 		tab_group.add(lineInputText);
-		#if (android || mobile)
+		#if (android || desktop)
 		tab_group.add(loadButton);
 		#end
 		tab_group.add(saveButton);
