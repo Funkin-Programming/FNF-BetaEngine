@@ -428,9 +428,33 @@ class FlxUIDropDownMenu extends FlxUIGroup implements IFlxUIWidget implements IF
 	{
 		super.update(elapsed);
 
-		#if FLX_MOUSE
+		#if (FLX_MOUSE || FLX_TOUCH)
 		if (dropPanel.visible)
 		{
+		    #if mobile
+		    if(list.length > 1 && canScroll) {
+				for (swipe in FlxG.swipes) {
+					var swipeDistance = swipe.startPosition.distanceTo(swipe.endPosition);
+			
+					if (swipeDistance >= 25) {
+						var angle = swipe.startPosition.angleBetween(swipe.endPosition);
+			
+						if (angle >= -45 && angle <= 45) {
+							// Go down
+							currentScroll++;
+							if (currentScroll >= list.length) currentScroll = list.length - 1;
+							updateButtonPositions();
+						}
+						else if (Math.abs(angle) >= 135) {
+							// Go up
+							currentScroll--;
+							if (currentScroll < 0) currentScroll = 0;
+							updateButtonPositions();
+						}
+					}
+				}
+			}
+			#else
 			if(list.length > 1 && canScroll) {
 				var lastScroll:Int = currentScroll;
 				if(FlxG.mouse.wheel > 0 || FlxG.keys.justPressed.UP) {
@@ -451,6 +475,7 @@ class FlxUIDropDownMenu extends FlxUIGroup implements IFlxUIWidget implements IF
 			{
 				showList(false);
 			}
+			#end
 		}
 		#end
 	}
