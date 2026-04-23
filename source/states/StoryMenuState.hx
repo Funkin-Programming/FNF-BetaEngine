@@ -178,7 +178,7 @@ class StoryMenuState extends MusicBeatState
 		add(txtWeekTitle);
 		
 		#if mobile
-		addVirtualPad(LEFT_FULL, A_B);
+		addVirtualPad(LEFT_FULL, A_B_C);
 		#end
 
 		changeWeek();
@@ -198,6 +198,11 @@ class StoryMenuState extends MusicBeatState
 		// scoreText.setFormat('VCR OSD Mono', 32);
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 30)));
 		if(Math.abs(intendedScore - lerpScore) < 10) lerpScore = intendedScore;
+		
+		#if mobile
+		if (controls.isInSubstate)
+            controls.isInSubstate = false;
+        #end
 
 		scoreText.text = "WEEK SCORE:" + lerpScore;
 
@@ -243,7 +248,7 @@ class StoryMenuState extends MusicBeatState
 			else if (upP || downP)
 				changeDifficulty();
 
-			if(FlxG.keys.justPressed.CONTROL)
+			if(FlxG.keys.justPressed.CONTROL #if mobile || virtualPad.buttonC.justPressed #end)
 			{
 				persistentUpdate = false;
 				openSubState(new GameplayChangersSubstate());

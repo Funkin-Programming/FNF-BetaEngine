@@ -177,7 +177,7 @@ class FreeplayState extends MusicBeatState
 		add(player);
 		
 		#if mobile
-		addVirtualPad(LEFT_FULL, A_B);
+		addVirtualPad(LEFT_FULL, A_B_C);
 		#end
 		
 		changeSelection();
@@ -222,6 +222,11 @@ class FreeplayState extends MusicBeatState
 		if(ratingSplit.length < 2) { //No decimals, add an empty space
 			ratingSplit.push('');
 		}
+		
+		#if mobile
+		if (controls.isInSubstate)
+            controls.isInSubstate = false;
+        #end
 		
 		while(ratingSplit[1].length < 2) { //Less than 2 decimals in it, add decimals then
 			ratingSplit[1] += '0';
@@ -315,7 +320,7 @@ class FreeplayState extends MusicBeatState
 			}
 		}
 
-		if(FlxG.keys.justPressed.CONTROL && !player.playingMusic)
+		if(FlxG.keys.justPressed.CONTROL #if mobile || virtualPad.buttonC.justPressed #end && !player.playingMusic)
 		{
 			persistentUpdate = false;
 			openSubState(new GameplayChangersSubstate());
