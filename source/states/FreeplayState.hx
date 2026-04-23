@@ -189,6 +189,11 @@ class FreeplayState extends MusicBeatState
 		changeSelection(0, false);
 		persistentUpdate = true;
 		super.closeSubState();
+		
+		#if mobile
+		removeVirtualPad();
+		addVirtualPad(LEFT_FULL, A_B_C);
+		#end
 	}
 
 	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int)
@@ -324,6 +329,7 @@ class FreeplayState extends MusicBeatState
 		{
 			persistentUpdate = false;
 			openSubState(new GameplayChangersSubstate());
+			removeVirtualPad();
 		}
 		else if(FlxG.keys.justPressed.SPACE)
 		{
