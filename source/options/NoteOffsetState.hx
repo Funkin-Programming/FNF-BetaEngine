@@ -164,13 +164,13 @@ class NoteOffsetState extends MusicBeatState
 		controllerPointer.cameras = [camHUD];
 		add(controllerPointer);
 		
-		updateMode();
-		_lastControllerMode = true;
-		
 		#if mobile
 		addVirtualPad(LEFT_RIGHT, A_B_C);
 		addVirtualPadCamera();
 		#end
+		
+		updateMode();
+		_lastControllerMode = true;
 
 		Conductor.bpm = 128.0;
 		FlxG.sound.playMusic(Paths.music('offsetSong'), 1, true);
