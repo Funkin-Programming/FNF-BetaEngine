@@ -82,6 +82,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	{
 		super();
 		
+		#if mobile controls.isInSubstate = true; #end
+		
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0.6;
 		add(bg);

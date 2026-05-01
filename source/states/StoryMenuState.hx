@@ -45,6 +45,11 @@ class StoryMenuState extends MusicBeatState
 	{
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
+		
+		#if mobile
+		if (controls.isInSubstate)
+            controls.isInSubstate = false;
+        #end
 
 		PlayState.isStoryMode = true;
 		WeekData.reloadWeekFiles(true);
@@ -198,6 +203,11 @@ class StoryMenuState extends MusicBeatState
 		// scoreText.setFormat('VCR OSD Mono', 32);
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 30)));
 		if(Math.abs(intendedScore - lerpScore) < 10) lerpScore = intendedScore;
+		
+		#if mobile
+		if (controls.isInSubstate)
+            controls.isInSubstate = false;
+        #end
 
 		scoreText.text = "WEEK SCORE:" + lerpScore;
 
