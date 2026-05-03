@@ -35,11 +35,6 @@ class OptionsState extends MusicBeatState
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
 		#end
-		
-		#if mobile
-		if (controls.isInSubstate)
-            controls.isInSubstate = false;
-        #end
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
@@ -77,18 +72,19 @@ class OptionsState extends MusicBeatState
 
 	override function closeSubState() {
 		super.closeSubState();
+		#if mobile
+		new FlxTimer().start(0.1, function(tmr:FlxTimer) {
+			controls.isInSubstate = false;
+		});
+		#end
 		ClientPrefs.saveSettings();
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
 		#end
 		
 		#if mobile
-        controls.isInSubstate = false;
-
 		removeVirtualPad();
-		new FlxTimer().start(0.3, function(tmr:FlxTimer) {
-			addVirtualPad(UP_DOWN, A_B);
-		});
+		addVirtualPad(UP_DOWN, A_B);
 		#end
 	}
 
