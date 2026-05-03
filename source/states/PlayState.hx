@@ -574,8 +574,8 @@ class PlayState extends MusicBeatState
 		startingSong = true;
 		
 		#if mobile
-		 addMobileControls(false);
-	     hitbox.visible = false;
+		addMobileControls(false);
+	    hitbox.visible = false;
 		#end
 		
 
@@ -1537,6 +1537,7 @@ class PlayState extends MusicBeatState
 	override function openSubState(SubState:FlxSubState)
 	{
 		stagesFunc(function(stage:BaseStage) stage.openSubState(SubState));
+		#if mobile controls.isInSubstate = true; #end
 		if (paused)
 		{
 			if (FlxG.sound.music != null)
@@ -1555,6 +1556,8 @@ class PlayState extends MusicBeatState
 	override function closeSubState()
 	{
 		super.closeSubState();
+		
+		#if mobile controls.isInSubstate = false; #end
 		
 		stagesFunc(function(stage:BaseStage) stage.closeSubState());
 		if (paused)
@@ -1648,11 +1651,6 @@ class PlayState extends MusicBeatState
 		}
 		else FlxG.camera.followLerp = 0;
 		callOnScripts('onUpdate', [elapsed]);
-		
-		#if mobile
-		if (controls.isInSubstate)
-            controls.isInSubstate = false;
-        #end
 
 		super.update(elapsed);
 
