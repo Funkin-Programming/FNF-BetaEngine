@@ -55,7 +55,7 @@ class Main extends Sprite
 		
         #if mobile
         var assetsExists = FileSystem.exists(StorageSystem.getDirectory() + "assets");
-        var modsExists = FileSystem.exists(StorageSystem.getDirectory() + "mods");
+        var modsExists = FileSystem.exists(StorageSystem.getDirectory() + "content");
 
         if (!assetsExists || !modsExists) {
             trace("Assets or Mods missing. Starting installation system...");

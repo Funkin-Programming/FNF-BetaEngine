@@ -81,65 +81,64 @@ class StorageSystem
 		{
 			Permissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
 		}
-
+		
 		if (VERSION.SDK_INT >= VERSION_CODES.R)
 		{
-			if (!Environment.isExternalStorageManager())
-				Settings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
+			if (!Environment.isExternalStorageManager()) Settings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
 		}
-
+		
 		try
 		{
 			var path = getDirectory();
-			if (!FileSystem.exists(path))
-				FileSystem.createDirectory(path);
-
+			if (!FileSystem.exists(path)) FileSystem.createDirectory(path);
+			
 			if (!FileSystem.exists(path + "assets"))
 			{
-				var hasInternet:Bool = false;
-				try
-				{
-					var http = new Http("https://www.google.com");
-					http.onStatus = function(status)
+				/*	var hasInternet:Bool = false;
+					try
 					{
-						if (status == 200)
-							hasInternet = true;
-					};
-					http.request(false);
-				}
-				catch (e:Dynamic)
-				{
-					hasInternet = false;
-				}
-
-				if (hasInternet)
-				{
-					Tools.showAlertDialog("Missing Assets", "Assets not found. Download via internet?", {
-						name: "Yes",
-						func: function()
+						var http = new Http("https://www.google.com");
+						http.onStatus = function(status)
 						{
-							copyFromAPK("mods/");
+							if (status == 200)
+								hasInternet = true;
+						};
+						http.request(false);
+					}
+					catch (e:Dynamic)
+					{
+						hasInternet = false;
+					}
 
-							Tools.showAlertDialog("Downloading", "Starting download. Please wait...", {
-								name: "OK",
-								func: function()
-								{
-									downloadZipRecursive();
-								}
-							});
-						}
-					}, {
-						name: "No",
-						func: function()
-						{
-							startApkCopy();
-						}
-					});
-				}
-				else
-				{
-					startApkCopy();
-				}
+					if (hasInternet)
+					{
+						Tools.showAlertDialog("Missing Assets", "Assets not found. Download via internet?", {
+							name: "Yes",
+							func: function()
+							{
+								copyFromAPK("content/");
+
+								Tools.showAlertDialog("Downloading", "Starting download. Please wait...", {
+									name: "OK",
+									func: function()
+									{
+										downloadZipRecursive();
+									}
+								});
+							}
+						}, {
+							name: "No",
+							func: function()
+							{
+								startApkCopy();
+							}
+						});
+					}
+					else
+					{
+						startApkCopy();
+				}*/
+				startApkCopy();
 			}
 		}
 		catch (e:Dynamic)
@@ -222,7 +221,7 @@ class StorageSystem
 	/**
 	 * Downloads a ZIP file containing assets from the provided URL via JNI.
 	 */
-	public static function downloadZipRecursive(?url:String):Void
+/*	public static function downloadZipRecursive(?url:String):Void
 	{
 		if (url == null)
 			url = "https://github.com/DeveloperPorting/Psych-Engine-0.7.3-Mobile/releases/download/zip/assets.zip";
@@ -256,12 +255,12 @@ class StorageSystem
 			trace("JNI Error: " + e);
 		}
 		#end
-	}
+	}*/
 
 	/**
 	 * Extracts the downloaded ZIP file into the target directory.
 	 */
-	private static function extractZip(zipPath:String, outputDir:String):Void
+/*	private static function extractZip(zipPath:String, outputDir:String):Void
 	{
 		try
 		{
@@ -317,7 +316,7 @@ class StorageSystem
 			Tools.showAlertDialog("Error During Extraction", Std.string(e), {name: "OK", func: null}, null);
 			#end
 		}
-	}
+	}*/
 
 	/**
 	 * Recursively copies any folder from the APK (assets, mods, etc.) to the external directory.
