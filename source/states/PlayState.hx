@@ -47,7 +47,6 @@ import openfl.filters.ShaderFilter;
 import objects.Note.EventNote;
 import objects.*;
 import states.stages.objects.*;
-
 #if LUA_ALLOWED
 import psychlua.*;
 #else
@@ -162,6 +161,7 @@ class PlayState extends MusicBeatState
 
 	public var camFollow:FlxObject;
 	private static var prevCamFollow:FlxObject;
+    #if VIDEOS_ALLOWED public var videoSprite:Array<FunkinVideoSprite> = []; #end
 
 	public var strumLineNotes:FlxTypedGroup<StrumNote>;
 	public var opponentStrums:FlxTypedGroup<StrumNote>;
@@ -1569,6 +1569,13 @@ class PlayState extends MusicBeatState
 			FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if(!tmr.finished) tmr.active = true);
 			FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = true);
 
+			#if VIDEOS_ALLOWED
+			if(videoSprite.length > 0)
+			for(video in videoSprite)
+				if(video.exists)
+				video.paused = false;
+			#end
+
 			paused = false;
 			callOnScripts('onResume');
 			resetRPC(startTimer != null && startTimer.finished);
@@ -1867,6 +1874,13 @@ class PlayState extends MusicBeatState
 		persistentDraw = true;
 		paused = true;
 
+		#if VIDEOS_ALLOWED
+		if(videoSprite.length > 0)
+			for(video in videoSprite)
+				if(video.exists)
+					video.paused = true;
+		#end
+
 		if(FlxG.sound.music != null) {
 			FlxG.sound.music.pause();
 			vocals.pause();
@@ -1939,6 +1953,12 @@ class PlayState extends MusicBeatState
 				#if LUA_ALLOWED
 				modchartTimers.clear();
 				modchartTweens.clear();
+				#end
+
+				#if VIDEOS_ALLOWED
+				if(videoSprite.length > 0)
+					for(video in videoSprite)
+						removeVideoSprite(video);
 				#end
 
 				openSubState(new GameOverSubstate());
@@ -3009,6 +3029,20 @@ class PlayState extends MusicBeatState
 
 		if(!note.isSustainNote) invalidateNote(note);
 	}
+
+	#if VIDEOS_ALLOWED
+	public function removeVideoSprite(video:FunkinVideoSprite):Void {
+		if(members.contains(video))
+			remove(video, true);
+		else {
+			forEachOfType(FlxSpriteGroup, function(group:FlxSpriteGroup){
+				if(group.members.contains(video))
+					group.remove(video, true);
+			});
+		}
+		video.altDestroy();
+	}
+	#end
 
 	public function invalidateNote(note:Note):Void {
 		note.kill();

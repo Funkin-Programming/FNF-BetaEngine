@@ -98,6 +98,9 @@ class HScript extends SScript
 		set('Paths', Paths);
 		set('Conductor', Conductor);
 		set('ClientPrefs', ClientPrefs);
+		#if VIDEOS_ALLOWED
+		set('VideoSpriteManager', backend.FunkinVideoSprite);
+		#end
 		#if ACHIEVEMENTS_ALLOWED
 		set('Achievements', Achievements);
 		#end

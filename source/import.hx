@@ -4,6 +4,10 @@
 import backend.Discord;
 #end
 
+#if VIDEOS_ALLOWED
+import backend.FunkinVideoSprite;
+#end
+
 //Psych
 #if LUA_ALLOWED
 import llua.*;
