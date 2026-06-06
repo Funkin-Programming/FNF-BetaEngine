@@ -1,0 +1,234 @@
+import hxp.*;
+import lime.tools.*;
+
+class Project extends HXProject {
+	public function new() {
+		super();
+
+		meta.title = #if mobile "FNF: Beta Engine" #else "Friday Night Funkin' Beta Engine" #end;
+		meta.packageName = "me.funkin.betaengine";
+		meta.file = "BetaEngind";
+		meta.version = "0.2.8";
+		meta.company = "Brenninho";
+
+		app.main = "Main";
+		app.preloader = "flixel.system.FlxPreloader";
+
+		var swfVersion:String = "11.8";
+
+		window.width = 1280;
+		window.height = 720;
+		window.fps = 60;
+		window.background = 0x000000;
+		window.hardware = true;
+		window.vsync = false;
+
+		if (target == Platform.HTML5) {
+			window.resizable = true;
+		}
+
+		if (targetFlags.exists("desktop")) {
+			window.orientation = Orientation.LANDSCAPE;
+			window.fullscreen = false;
+			window.resizable = true;
+			window.vsync = false;
+		}
+
+		if (targetFlags.exists("mobile")) {
+			window.orientation = Orientation.LANDSCAPE;
+			window.fullscreen = true;
+			window.resizable = false;
+		}
+
+		if (target == Platform.SWITCH) {
+			window.orientation = Orientation.LANDSCAPE;
+			window.fullscreen = true;
+			window.width = 0;
+			window.height = 0;
+			window.resizable = true;
+		}
+
+		var buildDir:String = "export/release";
+		if (debug) buildDir = "export/debug";
+		if (defines.exists("32bits")) buildDir = "export/32bit";
+
+		set("BUILD_DIR", buildDir);
+		set("APP_ID", "0x0100f6c013bbc000");
+		set("SWF_VERSION", swfVersion);
+
+		addHaxedef("LINC_LUA_RELATIVE_DYNAMIC_LIB");
+		addHaxedef("FLX_NO_FOCUS_LOST_SCREEN");
+		addHaxedef("no-deprecation-warnings");
+		addHaxedef("DISCORD_DISABLE_IO_THREAD");
+
+		if (!debug) {
+			addHaxedef("FLX_NO_DEBUG");
+			addHaxedef("NAPE_RELEASE_BUILD");
+		}
+
+		if (!targetFlags.exists("mobile")) {
+			addHaxedef("DISCORD_ALLOWED");
+		}
+
+		if (target == Platform.LINUX) {
+			addHaxedef("NO_PRECOMPILED_HEADERS");
+		}
+
+		if (debug) {
+			addHaxedef("HXC_DEBUG_TRACE");
+		}
+
+		addHaxedefConditional("ACHIEVEMENTS_ALLOWED", true);
+
+		var isDesktopOrMobile = targetFlags.exists("desktop") || targetFlags.exists("mobile");
+		if (isDesktopOrMobile) {
+			addHaxedef("MODS_ALLOWED");
+			addHaxedef("HSCRIPT_ALLOWED");
+			addHaxedef("LUA_ALLOWED");
+		}
+
+		var videosAllowed = (target == Platform.WINDOWS || target == Platform.LINUX || target == Platform.ANDROID)
+			&& !defines.exists("32bits");
+		if (videosAllowed) {
+			addHaxedef("VIDEOS_ALLOWED");
+		}
+
+		if (defines.exists("officialBuild")) {
+			addHaxedef("TITLE_SCREEN_EASTER_EGG");
+		}
+
+		if (targetFlags.exists("desktop") && defines.exists("officialBuild")) {
+			addHaxedef("CHECK_FOR_UPDATES");
+		}
+
+		if (!debug) {
+			addHaxedef("CRASH_HANDLER");
+			addHaxedef("HXCPP_CHECK_POINTER");
+			addHaxedef("HXCPP_STACK_LINE");
+			addHaxedef("HXCPP_STACK_TRACE");
+		}
+
+		if (videosAllowed && debug) {
+			addHaxedef("HXC_LIBVLC_LOGGING");
+		}
+
+		addHaxeflag("--macro", "allowPackage('flash')");
+		addHaxeflag("--macro", "include('my.pack')");
+
+		classPaths.push("source");
+
+		haxelibs.push(new Haxelib("flixel"));
+		haxelibs.push(new Haxelib("flixel-ui"));
+		haxelibs.push(new Haxelib("flixel-addons"));
+		haxelibs.push(new Haxelib("tjson"));
+		haxelibs.push(new Haxelib("flxanimate"));
+
+		if (isDesktopOrMobile) {
+			haxelibs.push(new Haxelib("linc_luajit"));
+			haxelibs.push(new Haxelib("SScript"));
+		}
+
+		if (videosAllowed) {
+			haxelibs.push(new Haxelib("hxCodec"));
+		}
+
+		if (!targetFlags.exists("mobile")) {
+			haxelibs.push(new Haxelib("hxdiscord_rpc"));
+		}
+
+		if (target == Platform.ANDROID) {
+			haxelibs.push(new Haxelib("extension-androidtools"));
+		}
+
+		if (debug) {
+			haxelibs.push(new Haxelib("hxcpp-debug-server"));
+		}
+
+		var isWeb = target == Platform.HTML5;
+
+		assets.push(new Asset("assets/fonts", null, AssetType.BINARY));
+
+		if (isWeb) {
+			assets.push(new Asset("assets/shared", null, null, "*.ogg"));
+		} else {
+			assets.push(new Asset("assets/shared", null, null, "*.mp3"));
+		}
+
+		if (targetFlags.exists("mobile")) {
+			assets.push(new Asset("assets/mobile"));
+		}
+
+		if (videosAllowed) {
+			assets.push(new Asset("assets/videos", "videos", AssetType.BINARY));
+		}
+
+		if (isWeb) {
+			assets.push(new Asset("assets/songs", "songs", null, "*.ogg"));
+			assets.push(new Asset("assets/week_assets", "week_assets", null, "*.ogg"));
+		} else {
+			assets.push(new Asset("assets/songs", "songs", null, "*.mp3"));
+			assets.push(new Asset("assets/week_assets", "week_assets", null, "*.mp3"));
+		}
+
+		if (defines.exists("TITLE_SCREEN_EASTER_EGG")) {
+			if (isWeb) {
+				assets.push(new Asset("assets/secrets", "assets/shared", null, "*.ogg"));
+			} else {
+				assets.push(new Asset("assets/secrets", "assets/shared", null, "*.mp3"));
+			}
+		}
+
+		if (defines.exists("MODS_ALLOWED")) {
+			assets.push(new Asset("example_mods", "mods", null, null, false));
+		}
+
+		assets.push(new Asset("art/readme.txt", "do NOT readme.txt"));
+
+		libraries.push(new Library("songs", true));
+		libraries.push(new Library("week_assets", true));
+
+		if (videosAllowed) {
+			libraries.push(new Library("videos", true));
+		}
+
+		if (target == Platform.ANDROID) {
+			javaPaths.push("source");
+
+			androidPermissions.push("android.permission.MANAGE_MEDIA");
+			androidPermissions.push("android.permission.MANAGE_EXTERNAL_STORAGE");
+			androidPermissions.push("android.permission.WRITE_EXTERNAL_STORAGE");
+			androidPermissions.push("android.permission.READ_EXTERNAL_STORAGE");
+			androidPermissions.push("android.permission.READ_MEDIA_IMAGES");
+			androidPermissions.push("android.permission.READ_MEDIA_AUDIO");
+			androidPermissions.push("android.permission.READ_MEDIA_VIDEO");
+			androidPermissions.push("android.permission.READ_MEDIA_DOCUMENTS");
+			androidPermissions.push("android.permission.VIBRATE");
+			androidPermissions.push("android.permission.INTERNET");
+			androidPermissions.push("android.permission.ACCESS_WIFI_STATE");
+			androidPermissions.push("android.permission.ACCESS_NETWORK_STATE");
+			androidPermissions.push("android.permission.CAPTURE_AUDIO_OUTPUT");
+
+			android.extension = "mobile.backend.java.FileUtils";
+			android.targetSdkVersion = 34;
+			android.minSdkVersion = 19;
+
+			if (!defines.exists("test")) {
+				certificate = new Keystore("key.keystore", "psychport", "psychport", "psychport");
+			}
+		}
+
+		if (target == Platform.IOS) {
+			javaPaths.push("source");
+			addHaxedef("SHARE_MOBILE_FILES");
+		}
+
+		if (target == Platform.LINUX) {
+			icons.push(new Icon("art/iconOG.png", "icon.png"));
+		}
+
+		icons.push(new Icon("art/icon16.png", 16));
+		icons.push(new Icon("art/icon32.png", 32));
+		icons.push(new Icon("art/icon64.png", 64));
+		icons.push(new Icon("art/iconOG.png"));
+	}
+}
