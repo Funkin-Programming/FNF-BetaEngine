@@ -1,15 +1,86 @@
 name: Main Build
 
-on: 
+on:
   workflow_dispatch:
 
 jobs:
-  # -----------------------------------------------------------------
-  # 1. ANDROID BUILD
-  # -----------------------------------------------------------------
   android:
     name: Build Android
     runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+          add-to-path: false
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v2.0.2
+        with:
+          haxe-version: 4.3.7
+
+      - name: Install Libraries
+        run: |
+          haxelib install hmm --quiet
+          haxelib install hxp --quiet
+          haxelib run hmm setup
+          haxelib run hmm install
+          haxelib run lime rebuild hxcpp --quiet
+
+      - name: Configure Android
+        run: |
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT ${{ steps.setup-ndk.outputs.ndk-path }}
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP true
+
+      - name: Compile
+        run: haxelib run lime build android -release
+
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign-apk
+        with:
+          releaseDirectory: export/release/android/bin/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Verify APK with Google Play
+        uses: google-github-actions/upload-google-play@v2
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: me.funkin.betaengine
+          releaseFiles: ${{ steps.sign-apk.outputs.signedReleaseFile }}
+          track: internal
+          status: draft
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BetaEngine-Android
+          path: ${{ steps.sign-apk.outputs.signedReleaseFile }}
+          if-no-files-found: error
+
+  ios:
+    name: Build iOS
+    runs-on: macos-15
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -22,73 +93,33 @@ jobs:
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
-          haxelib run hmm setup
-          haxelib run hmm install
-          haxelib run lime rebuild hxcpp --quiet
-
-      - name: Configure Android
-        run: |
-          haxelib run lime setup android
-          haxelib run lime config ANDROID_SDK $ANDROID_HOME
-          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_LATEST_HOME
-          haxelib run lime config JAVA_HOME $JAVA_HOME_17_X64
-          haxelib run lime config ANDROID_SETUP true
-
-      - name: Compile
-        run: haxelib run lime build android -release
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PsychEngine-Android
-          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-
-  # -----------------------------------------------------------------
-  # 2. iOS BUILD
-  # -----------------------------------------------------------------
-  ios:
-    name: Build iOS
-    runs-on: macos-15
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Haxe
-        uses: krdlab/setup-haxe@v2.0.2
-        with:
-          haxe-version: 4.3.7
-          
-      - name: Install Libraries
-        run: |
-         haxelib install hmm --quiet
-         haxelib run hmm setup --quiet
-         haxelib run hmm install --quiet
-         haxelib run lime rebuild hxcpp
+          haxelib install hxp --quiet
+          haxelib run hmm setup --quiet
+          haxelib run hmm install --quiet
+          haxelib run lime rebuild hxcpp
 
       - name: Compile
         run: haxelib run lime build ios -nosign
 
-      - name: Making ipa file
+      - name: Package IPA
         run: |
           brew install ldid
-          cd export/release/ios/build/Release-iphoneos/PsychMobile0.7.3.app
-          ldid -S../../../PsychMobile0.7.3/PsychMobile0.7.3.entitlements PsychMobile0.7.3
-          cd ..
+          APP_NAME="BetaEngine"
+          APP_DIR="export/release/ios/build/Release-iphoneos/${APP_NAME}.app"
+          ENTITLEMENTS="export/release/ios/build/${APP_NAME}/${APP_NAME}.entitlements"
+          ldid -S"${ENTITLEMENTS}" "${APP_DIR}/${APP_NAME}"
+          cd "export/release/ios/build/Release-iphoneos"
           mkdir Payload
-          mv PsychMobile0.7.3.app Payload
-          zip -r PsychMobile0.7.3.ipa Payload
+          mv "${APP_NAME}.app" Payload
+          zip -r "${APP_NAME}.ipa" Payload
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PsychEngine-iOS
+          name: BetaEngine-iOS
           path: export/release/ios/build/Release-iphoneos/*.ipa
           if-no-files-found: error
 
-  # -----------------------------------------------------------------
-  # 3. WINDOWS BUILD
-  # -----------------------------------------------------------------
   windows:
     name: Build Windows
     runs-on: windows-2022
@@ -105,10 +136,10 @@ jobs:
         run: |
           haxelib setup D:/haxelib
           haxelib install hmm --quiet
+          haxelib install hxp --quiet
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
-          haxelib run lime test cpp -clean
 
       - name: Compile
         run: haxelib run lime build windows -release
@@ -116,13 +147,10 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PsychEngine-Windows
+          name: BetaEngine-Windows
           path: export/release/windows/bin/
           if-no-files-found: error
 
-  # -----------------------------------------------------------------
-  # 4. LINUX BUILD
-  # -----------------------------------------------------------------
   linux:
     name: Build Linux
     runs-on: ubuntu-24.04
@@ -138,11 +166,20 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libvlc-dev libvlccore-dev libasound2-dev libx11-dev libxext-dev libxi-dev libxrandr-dev libxinerama-dev
+          sudo apt-get install -y \
+            libvlc-dev \
+            libvlccore-dev \
+            libasound2-dev \
+            libx11-dev \
+            libxext-dev \
+            libxi-dev \
+            libxrandr-dev \
+            libxinerama-dev
 
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
+          haxelib install hxp --quiet
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
@@ -153,13 +190,10 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PsychEngine-Linux
+          name: BetaEngine-Linux
           path: export/release/linux/bin/
           if-no-files-found: error
 
-  # -----------------------------------------------------------------
-  # 5. MACOS BUILD (DESKTOP)
-  # -----------------------------------------------------------------
   macos:
     name: Build MacOS
     runs-on: macos-15
@@ -175,6 +209,7 @@ jobs:
       - name: Install Libraries
         run: |
           haxelib install hmm --quiet
+          haxelib install hxp --quiet
           haxelib run hmm setup
           haxelib run hmm install
           haxelib run lime rebuild hxcpp --quiet
@@ -185,6 +220,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PsychEngine-MacOS
+          name: BetaEngine-MacOS
           path: export/release/macos/bin/
-          if-no-files-found: error          
+          if-no-files-found: error
