@@ -14,8 +14,6 @@ class Project extends HXProject {
 		app.main = "Main";
 		app.preloader = "flixel.system.FlxPreloader";
 
-		var swfVersion:String = "11.8";
-
 		window.width = 1280;
 		window.height = 720;
 		window.fps = 60;
@@ -54,31 +52,34 @@ class Project extends HXProject {
 
 		set("BUILD_DIR", buildDir);
 		set("APP_ID", "0x0100f6c013bbc000");
-		set("SWF_VERSION", swfVersion);
+		set("SWF_VERSION", "11.8");
 
 		addHaxedef("LINC_LUA_RELATIVE_DYNAMIC_LIB");
 		addHaxedef("FLX_NO_FOCUS_LOST_SCREEN");
 		addHaxedef("no-deprecation-warnings");
 		addHaxedef("DISCORD_DISABLE_IO_THREAD");
+		addHaxedef("ACHIEVEMENTS_ALLOWED");
 
 		if (!debug) {
 			addHaxedef("FLX_NO_DEBUG");
 			addHaxedef("NAPE_RELEASE_BUILD");
-		}
-
-		if (!targetFlags.exists("mobile")) {
-			addHaxedef("DISCORD_ALLOWED");
-		}
-
-		if (target == Platform.LINUX) {
-			addHaxedef("NO_PRECOMPILED_HEADERS");
+			addHaxedef("CRASH_HANDLER");
+			addHaxedef("HXCPP_CHECK_POINTER");
+			addHaxedef("HXCPP_STACK_LINE");
+			addHaxedef("HXCPP_STACK_TRACE");
 		}
 
 		if (debug) {
 			addHaxedef("HXC_DEBUG_TRACE");
 		}
 
-		addHaxedefConditional("ACHIEVEMENTS_ALLOWED", true);
+		if (target == Platform.LINUX) {
+			addHaxedef("NO_PRECOMPILED_HEADERS");
+		}
+
+		if (!targetFlags.exists("mobile")) {
+			addHaxedef("DISCORD_ALLOWED");
+		}
 
 		var isDesktopOrMobile = targetFlags.exists("desktop") || targetFlags.exists("mobile");
 		if (isDesktopOrMobile) {
@@ -101,13 +102,6 @@ class Project extends HXProject {
 			addHaxedef("CHECK_FOR_UPDATES");
 		}
 
-		if (!debug) {
-			addHaxedef("CRASH_HANDLER");
-			addHaxedef("HXCPP_CHECK_POINTER");
-			addHaxedef("HXCPP_STACK_LINE");
-			addHaxedef("HXCPP_STACK_TRACE");
-		}
-
 		if (videosAllowed && debug) {
 			addHaxedef("HXC_LIBVLC_LOGGING");
 		}
@@ -117,10 +111,12 @@ class Project extends HXProject {
 
 		classPaths.push("source");
 
-		haxelibs.push(new Haxelib("flixel"));
-		haxelibs.push(new Haxelib("flixel-ui"));
-		haxelibs.push(new Haxelib("flixel-addons"));
-		haxelibs.push(new Haxelib("tjson"));
+		haxelibs.push(new Haxelib("lime"));
+		haxelibs.push(new Haxelib("openfl", "9.3.3"));
+		haxelibs.push(new Haxelib("flixel", "5.5.0"));
+		haxelibs.push(new Haxelib("flixel-addons", "3.2.1"));
+		haxelibs.push(new Haxelib("flixel-ui", "2.5.0"));
+		haxelibs.push(new Haxelib("tjson", "1.4.0"));
 		haxelibs.push(new Haxelib("flxanimate"));
 
 		if (isDesktopOrMobile) {
@@ -129,11 +125,11 @@ class Project extends HXProject {
 		}
 
 		if (videosAllowed) {
-			haxelibs.push(new Haxelib("hxCodec"));
+			haxelibs.push(new Haxelib("hxCodec", "3.0.0"));
 		}
 
 		if (!targetFlags.exists("mobile")) {
-			haxelibs.push(new Haxelib("hxdiscord_rpc"));
+			haxelibs.push(new Haxelib("hxdiscord_rpc", "1.1.1"));
 		}
 
 		if (target == Platform.ANDROID) {
@@ -141,7 +137,7 @@ class Project extends HXProject {
 		}
 
 		if (debug) {
-			haxelibs.push(new Haxelib("hxcpp-debug-server"));
+			haxelibs.push(new Haxelib("hxcpp-debug-server", "1.2.4"));
 		}
 
 		var isWeb = target == Platform.HTML5;
