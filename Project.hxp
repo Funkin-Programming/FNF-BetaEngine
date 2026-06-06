@@ -7,7 +7,7 @@ class Project extends HXProject {
 
 		meta.title = #if mobile "FNF: Beta Engine" #else "Friday Night Funkin' Beta Engine" #end;
 		meta.packageName = "me.funkin.betaengine";
-		meta.file = "BetaEngind";
+		meta.file = "BetaEngine";
 		meta.version = "0.2.8";
 		meta.company = "Brenninho";
 
